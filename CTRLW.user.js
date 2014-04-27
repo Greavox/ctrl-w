@@ -4,14 +4,14 @@
 // @include     http://mush.vg/*
 // @include     http://mush.twinoid.com/*
 // @include     http://mush.twinoid.es/*
-// @downloadURL https://raw.github.com/badconker/ctrl-w/release/CTRLW.user.js
-// @require     lib/Gettext.js
-// @resource    css:jgrowl lib/jquery.jgrowl.css
-// @resource    jgrowl lib/jquery.jgrowl.js
-// @resource    mush lib/Mush.js
-// @resource    translation:fr translations/fr/LC_MESSAGES/ctrl-w.po
-// @resource    translation:en translations/en/LC_MESSAGES/ctrl-w.po
-// @resource    translation:es translations/es/LC_MESSAGES/ctrl-w.po
+// @downloadURL https://raw.github.com/badconker/ctrl-w/beta/CTRLW.user.js
+// @require     https://raw.github.com/badconker/ctrl-w/beta/lib/Gettext.js
+// @resource    css:jgrowl https://raw.github.com/badconker/ctrl-w/beta/lib/jquery.jgrowl.css
+// @resource    jgrowl https://raw.github.com/badconker/ctrl-w/beta/lib/jquery.jgrowl.js
+// @resource    mush https://raw.github.com/badconker/ctrl-w/beta/lib/Mush.js
+// @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
+// @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
+// @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
 // @version     0.33.11
 // ==/UserScript==
 
@@ -2524,7 +2524,7 @@ Main.k.tabs.playing = function() {
 		if(localStorage.getItem('ctrlw_update_cache') == null){
 			Main.k.UpdateCheck.b_in_progress = true;
 			$.ajax({
-				url :Main.k.servurl + "/versions/update/"+ version_update,
+				url :Main.k.servurl + "/versions/update/"+ version_update+'/beta',
 				dataType : 'jsonp',
 				success: function(json) {
 					setTimeout(function() {
