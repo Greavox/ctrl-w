@@ -12,7 +12,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.34
+// @version     0.34.1
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -2553,8 +2553,7 @@ Main.k.tabs.playing = function() {
 			Main.k.UpdateData.changelog = json.changelog_long;
 		}
 		Main.k.UpdateData.url = json.url;
-		var version = Main.k.version.replace(/([^a-z]*)[a-z]{1}[0-9]*/,'$1');
-		if (json.user_code_version < json.code) {
+		if (json.user_code_version < json.code && json.user_num_version == GM_info.script.version) {
 			$("#updatebtn").css("display", "block");
 		} else {
 			if(typeof(lastVersion) != 'undefined' && lastVersion != GM_info.script.version){
