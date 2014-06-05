@@ -12,7 +12,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b5
+// @version     0.35b6
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -3783,9 +3783,6 @@ Main.k.tabs.playing = function() {
 		});
 	};
 	Main.k.Sync.pull = function(key) {
-		var button = $('#ctrlw_sync_button');
-		button.find('img').hide();
-		button.find('.ctrlw_down').show();
 		var dfd = new jQuery.Deferred();
 		if(typeof(key) == 'undefined'){
 			key = localStorage.getItem('ctrlw_sync_key');
@@ -3793,6 +3790,9 @@ Main.k.tabs.playing = function() {
 		if(key == null){
 			dfd.reject('key_null');
 		}else{
+			var button = $('#ctrlw_sync_button');
+			button.find('img').hide();
+			button.find('.ctrlw_down').show();
 			$.ajax({
 				url :Main.k.servurl + "/sync/pull",
 				type: 'POST',
@@ -3833,13 +3833,13 @@ Main.k.tabs.playing = function() {
 		return dfd.promise();
 	};
 	Main.k.Sync.push = function() {
-		var button = $('#ctrlw_sync_button');
-		button.find('img').hide();
-		button.find('.ctrlw_up').show();
 		var key = localStorage.getItem('ctrlw_sync_key');
 		if(key == null){
 			return;
 		}
+		var button = $('#ctrlw_sync_button');
+		button.find('img').hide();
+		button.find('.ctrlw_up').show();
 		console.info('xhr Sync.push');
 		setTimeout(function() {
 			GM_xmlhttpRequest({
@@ -3888,6 +3888,10 @@ Main.k.tabs.playing = function() {
 		}, 0);
 	};
 	Main.k.Sync.pushDelay = function() {
+		var key = localStorage.getItem('ctrlw_sync_key');
+		if(key == null){
+			return;
+		}
 		var button = $('#ctrlw_sync_button');
 		button.find('img').hide();
 		button.find('.ctrlw_wheels').show();
