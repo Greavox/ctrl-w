@@ -12,7 +12,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b13
+// @version     0.35b14
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -304,6 +304,23 @@ Main.k.initData = function() {
 	Main.k.statusImages['bronze'] = 'http://imgup.motion-twin.com/twinoid/6/b/8b8ae4d5_4030.jpg';
 	Main.k.statusImages['silver'] = 'http://imgup.motion-twin.com/twinoid/a/e/3c341777_4030.jpg';
 	Main.k.statusImages['gold'] = 'http://imgup.motion-twin.com/twinoid/c/1/4e43e15c_4030.jpg';
+
+	Main.k.statuses = {
+		'inactive': {
+			/* Translators: This translation must be copied from the game. */
+			'desc' : Main.k.text.gettext('Description inactif'),
+			'img' : 'sleepy',
+			/* Translators: This translation must be copied from the game. */
+			'name' : Main.k.text.gettext('Inactif')
+		},
+		'hinactive': {
+			/* Translators: This translation must be copied from the game. */
+			'desc' : Main.k.text.gettext('Description grand inactif'),
+			'img' : 'noob',
+			/* Translators: This translation must be copied from the game. */
+			'name' : Main.k.text.gettext('Grand inactif')
+		}
+	};
 };
 Main.k.init = function(){
 	//hack for new session detection
@@ -1697,6 +1714,13 @@ Main.k.css.ingame = function() {
 		background: rgba(28, 56, 126, 0.976);\
 		box-shadow: 0px 0px 3px 3px rgba(57, 101, 251, 0.5), 0px 0px 3px 3px rgba(57, 101, 251, 0.5) inset;\
 		resize: none! important;\
+	}\
+	.popup-content{\
+		margin: 30px;\
+	}\
+	.popup-actions{\
+		margin-bottom: 10px;\
+		text-align: center;\
 	}\
 	.updatescontent { \
 		margin: 30px;\
@@ -4023,11 +4047,14 @@ Main.k.tabs.playing = function() {
 
 		return dfd.promise();
 	};
-	Main.k.Sync.push = function() {
+	Main.k.Sync.push = function(force_push) {
 		console.info('xhr Sync.push1');
 		var key = localStorage.getItem('ctrlw_sync_key');
 		if(key == null){
 			return;
+		}
+		if(typeof(force_push) == 'undefined'){
+			force_push = false;
 		}
 		var button = $('#ctrlw_sync_button');
 		button.find('img').hide();
@@ -4042,7 +4069,8 @@ Main.k.tabs.playing = function() {
 					mush_time: $('#input').attr('now'),
 					profiles: JSON.stringify(Main.k.Profiles.data),
 					msgs_prerecorded: JSON.stringify(Main.k.Manager.msgs_prerecorded),
-					key: key
+					key: key,
+					force : force_push ? 1 : 0
 				}),
 				headers: {
 					"Content-Type": "application/x-www-form-urlencoded"
@@ -4051,8 +4079,10 @@ Main.k.tabs.playing = function() {
 					console.warn('response',response);
 
 					if(response.status == 200){
+						/** @type {{sync:<Object{updated_at:string}>,status:string}} **/
 						var json = JSON.parse(response.responseText);
 						console.warn('json',json);
+						//json = JSON.parse(localStorage.getItem('ctrlw_json_test'));
 						if(json.status == 'ok'){
 							localStorage.setItem('ctrlw_sync_last_update_time',$('#input').attr('now'));
 						}else{
@@ -4060,8 +4090,54 @@ Main.k.tabs.playing = function() {
 							if(typeof(json.status) !='undefined'){
 								if(typeof(json.error) !='undefined' && json.error == 'auth'){
 									Main.k.quickNoticeError(Main.k.text.gettext('Synchronisation impossible, clé incorrecte'));
-								}else if(confirm(Main.k.text.gettext('Vos données locales sont plus anciennes que les données du serveurs, voulez vous les écraser ?'))){
-									Main.k.Sync.pull();
+								}else{
+									var popup = Main.k.CreatePopup();
+									popup.content.css({
+										"height": "auto",
+										"max-height": "90%",
+										"width": "700px",
+										"color": "#FFF"
+									});
+
+									// Fill popup content
+									var content = "<div class='sync_ask popup-content'>" + Main.k.text.gettext('Les données distantes sont plus récentes que les données locales. <br/> Que voulez vous faire ?') + '<br/>' +
+										Main.k.text.gettext('Date synchro serveur : ') + new Date(json.sync.mush_time) + '<br/>' +
+										Main.k.text.gettext('Date synchro locale : ') + new Date(parseInt(localStorage.getItem('ctrlw_sync_last_update_time'))) +
+										"</div>";
+									var buttons = $("<div class='popup-actions'>" +
+														"<div id=\"confirm_pull\" class=\"but updatesbtn\" >" +
+															"<div class=\"butright\">" +
+																"<div class=\"butbg\">" +
+																	"<a href=\"#\">"+Main.k.text.gettext("Ecraser les données locales")+"</a>" +
+																"</div>" +
+															"</div>" +
+														"</div>" +
+														"<div id=\"confirm_push\" class=\"but updatesbtn\" >" +
+															"<div class=\"butright\">" +
+																"<div class=\"butbg\">" +
+																	"<a href=\"#\">"+Main.k.text.gettext("Ecraser les données distantes")+"</a>" +
+																"</div>" +
+															"</div>" +
+														"</div>" +
+													 "</div>");
+									buttons.find('#confirm_pull').on('click',function(e){
+										e.preventDefault();
+										Main.k.Sync.pull();
+										Main.k.ClosePopup();
+									});
+									buttons.find('#confirm_push').on('click',function(e){
+										e.preventDefault();
+										Main.k.Sync.push(true);
+										Main.k.ClosePopup();
+									});
+									var cancelAc = "'Main.k.ClosePopup();'";
+									var cancel = "<div id=\"cancel\" class=\"but updatesbtn\" onclick=" + cancelAc + "><div class=\"butright\"><div class=\"butbg\"><a href=\"#\">" + Main.getText("cancel") + "</a></div></div></div></div>";
+									buttons.append(cancel);
+									$("<div>").html(content).append(buttons).appendTo(popup.content);
+
+									// Display popup
+									Main.k.OpenPopup(popup.dom);
+									//Main.k.Sync.pull();
 								}
 							}
 						}
@@ -4101,7 +4177,7 @@ Main.k.tabs.playing = function() {
 		Main.k.countdownTimer.stop('syncdelay');
 		button.addClass('loading');
 		counter.text(delay);
-		Main.k.countdownTimer.go(10,'syncdelay',function(count){
+		Main.k.countdownTimer.go(delay,'syncdelay',function(count){
 			button.find('.counter').text(count);
 			if(count <= 0){
 				counter.text('');
@@ -4158,7 +4234,6 @@ Main.k.tabs.playing = function() {
 			}).html("<span>" + Main.k.getFullName(Main.k.Profiles.current) + "</span>").appendTo(header);
 			Main.k.MakeButton("<img src='/img/icons/ui/awake.png' />",null,function(event) {
 				Main.k.Profiles.set(Main.k.Profiles.current);
-				Main.k.Profiles.update();
 			}).css({
 				position: "absolute",
 				top: "2px",
@@ -4338,6 +4413,9 @@ Main.k.tabs.playing = function() {
 		}
 		$('<label />')
 			.attr('for','hero_details_dead')
+			.css({
+				display: 'block'
+			})
 			.append(
 				$('<img>')
 					.attr({
@@ -4360,7 +4438,70 @@ Main.k.tabs.playing = function() {
 					})
 			)
 			.appendTo($hero_details);
-
+		$('<label />')
+			.attr('for','hero_details_inactive')
+			.css({
+				display: 'block'
+			})
+			.append(
+				$('<img>')
+					.attr({
+						src: '/img/icons/ui/'+Main.k.statuses['inactive']['img']+'.png',
+						alt: 'inactive',
+						title: 'inactive'
+					})
+				)
+			.append(
+				$('<input />')
+					.attr({
+						id: 'hero_details_inactive',
+						type: 'checkbox'
+					})
+					.prop('checked',$this.hasAttr(o_hero,'statuses',Main.k.statuses['inactive']['img']))
+					.on('change',function(){
+						var o_hero = $this.get();
+						if($(this).prop('checked')){
+							o_hero.statuses.push(Main.k.statuses['inactive']);
+						}else{
+							o_hero = $this.removeAttrFromProfile(o_hero,'statuses',Main.k.statuses['inactive']['img']);
+						}
+						$this.set(o_hero);
+						$this.update();
+					})
+			)
+			.appendTo($hero_details);
+		$('<label />')
+			.attr('for','hero_details_hinactive')
+			.css({
+				display: 'block'
+			})
+			.append(
+				$('<img>')
+					.attr({
+						src: '/img/icons/ui/'+Main.k.statuses['hinactive']['img']+'.png',
+						alt: 'highly inactive',
+						title: 'highly inactive'
+					})
+				)
+			.append(
+				$('<input />')
+					.attr({
+						id: 'hero_details_hinactive',
+						type: 'checkbox'
+					})
+					.prop('checked',$this.hasAttr(o_hero,'statuses',Main.k.statuses['hinactive']['img']))
+					.on('change',function(){
+						var o_hero = $this.get();
+						if($(this).prop('checked')){
+							o_hero.statuses.push(Main.k.statuses['hinactive']);
+						}else{
+							o_hero = $this.removeAttrFromProfile(o_hero,'statuses',Main.k.statuses['hinactive']['img']);
+						}
+						$this.set(o_hero);
+						$this.update();
+					})
+			)
+			.appendTo($hero_details);
 		console.groupEnd();
 	};
 	Main.k.Profiles.create = function(dev_surname){
@@ -4470,6 +4611,35 @@ Main.k.tabs.playing = function() {
 		}
 		console.groupEnd();
 		return profile;
+	};
+	Main.k.Profiles.removeAttrFromProfile = function(profile,type_attribute,value,key_value){
+		console.warn('avant',profile[type_attribute]);
+		if(typeof(key_value) == 'undefined'){
+			key_value = 'img';
+		}
+		var index_to_remove = null;
+		for(var i = 0; i<profile[type_attribute].length; i++){
+			if(profile[type_attribute][i][key_value] == value){
+				index_to_remove = i;
+			}
+		}
+		console.warn('milieu',index_to_remove,profile[type_attribute]);
+		if(index_to_remove != null){
+			profile[type_attribute].splice(index_to_remove,1);
+		}
+		console.warn('apres',profile[type_attribute]);
+		return profile;
+	};
+	Main.k.Profiles.hasAttr = function(profile,type_attribute,value,key_value){
+		if(typeof(key_value) == 'undefined'){
+			key_value = 'img';
+		}
+		for(var i = 0; i<profile[type_attribute].length; i++){
+			if(profile[type_attribute][i][key_value] == value){
+				return true;
+			}
+		}
+		return false;
 	};
 	Main.k.Profiles.close = function(){
 		console.log('Main.k.Profiles.close');
@@ -6552,10 +6722,15 @@ Main.k.tabs.playing = function() {
 		var missingDiv = $("<div>").addClass("missingheroes").appendTo(heroes_list);
 		j=0;
 		var $div_hero;
-		var a_divs_heroes_alive = [];
-		var a_divs_heroes_dead = [];
+		var a_divs_heroes = {
+			'alive': [],
+			'inactive': [],
+			'dead': []
+		};
+		var inactive_status;
 		for (i=0; i<Main.k.HEROES.length; i++) {
 			(function() {
+				inactive_status = null;
 				var hero = Main.k.HEROES[i];
 				var h = Main.k.h[hero];
 				if (!Main.k.ArrayContains(Main.k.heroes_same_room, hero)) {
@@ -6576,8 +6751,16 @@ Main.k.tabs.playing = function() {
 									Main.k.Profiles.display(hero);
 								})
 						);
+
+					for( var inc = 0; inc < o_hero.statuses.length; inc ++){
+						/** @type {{desc:string,img:string, name:string}} **/
+						status = o_hero.statuses[inc];
+						if($.inArray(status.img,['sleepy','noob']) != -1){
+							inactive_status = status.img;
+						}
+					}
 					if(o_hero.dead == true){
-						a_divs_heroes_dead.push($div_hero);
+						a_divs_heroes['dead'].push($div_hero);
 						$('<img>').attr({
 								src: '/img/icons/ui/dead.png'
 							})
@@ -6588,15 +6771,30 @@ Main.k.tabs.playing = function() {
 								'pointer-events': 'none'
 							})
 							.appendTo($div_hero);
+					}else if(inactive_status != null){
+						a_divs_heroes['inactive'].push($div_hero);
+						$('<img>').attr({
+								src: '/img/icons/ui/'+inactive_status+'.png'
+							})
+							.css({
+								position: 'absolute',
+								bottom: '-6px',
+								right: '-2px',
+								'pointer-events': 'none'
+							})
+							.appendTo($div_hero);
 					}else{
-						a_divs_heroes_alive.push($div_hero);
+						a_divs_heroes['alive'].push($div_hero);
 
 					}
 				}
 			})();
 		}
-		$.each($.merge(a_divs_heroes_alive,a_divs_heroes_dead),function(k,$div){
-			missingDiv.append($div);
+		$.each(a_divs_heroes,function(k,a){
+			$.each(a, function(key,$div){
+				missingDiv.append($div);
+			});
+
 		});
 		// ----------------------------------- //
 
@@ -7022,6 +7220,8 @@ Main.k.tabs.playing = function() {
 
 		// Update manager?
 		if (Main.k.Manager.opened) Main.k.Manager.update();
+
+		Main.k.Profiles.update();
 
 		// Options
 		Main.k.updateBottom();
