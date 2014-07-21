@@ -12,7 +12,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b14
+// @version     0.35b15
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -1766,6 +1766,22 @@ Main.k.css.ingame = function() {
 		transition: all 200ms;\
 		-webkit-transition: all 200ms;\
 		-o-transition: all 200ms;\
+	}\
+	#profile_col .hero-details{\
+		height: 95px;\
+		margin-left: 95px;\
+		margin-right: 5px;\
+		position: relative;\
+	}\
+	.profile-custom-infos{\
+		border-top: 1px solid #FFF;\
+		bottom: 0;\
+		padding-top: 3px;\
+		position: absolute;\
+		width: 100%;\
+	}\
+	.profile-custom-infos label{\
+		margin-right: 10px;\
 	}\
 	/** pour régler les probleme du au scale css3 sur firefox**/\
 	#char_col .sheetbgcontent table td.two .extrapa{\
@@ -4247,9 +4263,6 @@ Main.k.tabs.playing = function() {
 				.on("mouseout", Main.hideTip);
 
 			$('<div>')
-				.css({
-					position: 'relative'
-				})
 				.addClass('hero-details')
 				.appendTo(header);
 			$("<div>").addClass("clear").appendTo(header);
@@ -4411,11 +4424,9 @@ Main.k.tabs.playing = function() {
 				.appendTo($hero_details);
 
 		}
+		var $custom_infos = $('<div>').addClass('profile-custom-infos').appendTo($hero_details);
 		$('<label />')
 			.attr('for','hero_details_dead')
-			.css({
-				display: 'block'
-			})
 			.append(
 				$('<img>')
 					.attr({
@@ -4437,12 +4448,9 @@ Main.k.tabs.playing = function() {
 						$this.set(o_hero);
 					})
 			)
-			.appendTo($hero_details);
+			.appendTo($custom_infos);
 		$('<label />')
 			.attr('for','hero_details_inactive')
-			.css({
-				display: 'block'
-			})
 			.append(
 				$('<img>')
 					.attr({
@@ -4469,12 +4477,9 @@ Main.k.tabs.playing = function() {
 						$this.update();
 					})
 			)
-			.appendTo($hero_details);
+			.appendTo($custom_infos);
 		$('<label />')
 			.attr('for','hero_details_hinactive')
-			.css({
-				display: 'block'
-			})
 			.append(
 				$('<img>')
 					.attr({
@@ -4501,7 +4506,7 @@ Main.k.tabs.playing = function() {
 						$this.update();
 					})
 			)
-			.appendTo($hero_details);
+			.appendTo($custom_infos);
 		console.groupEnd();
 	};
 	Main.k.Profiles.create = function(dev_surname){
@@ -4641,12 +4646,27 @@ Main.k.tabs.playing = function() {
 		}
 		return false;
 	};
+	Main.k.Profiles.hasStatusWhichRemoveTitle = function(profile){
+		if(profile.dead){
+			return true;
+		}
+		var status = null;
+		for( var inc = 0; inc < profile.statuses.length; inc ++){
+			/** @type {{desc:string,img:string, name:string}} **/
+			status = profile.statuses[inc];
+			if($.inArray(status.img,[Main.k.statuses.inactive.img,Main.k.statuses.hinactive.img]) != -1){
+				return true;
+			}
+		}
+		return false;
+	};
 	Main.k.Profiles.close = function(){
 		console.log('Main.k.Profiles.close');
 		Main.k.Profiles.current = null;
 		Main.k.folding.displayGame();
 	};
 	Main.k.Profiles.clear = function(){
+		Main.k.Profiles.data = {};
 		localStorage.removeItem('ctrlw_profiles');
 		callbacks_storage_sync.fire();
 	};
@@ -4977,6 +4997,14 @@ Main.k.tabs.playing = function() {
 					$(this).find("p, ul").each(function() {
 						topic.msg += "<" + $(this).prop("tagName") + ">" + $(this).html() + "</" + $(this).prop("tagName") + ">";
 					});
+					if(topic.msg == ''){
+						topic.msg = $(this).find('.mainsaid')
+									.clone()    //clone the element
+									.children() //select all the children
+									.remove()   //remove all the children
+									.end()  //again go back to selected element
+									.text();
+					}
 				}
 
 				topic.author = hero;
@@ -5024,6 +5052,14 @@ Main.k.tabs.playing = function() {
 					$(this).find("p, ul").each(function() {
 						reply.msg += "<" + $(this).prop("tagName") + ">" + $(this).html() + "</" + $(this).prop("tagName") + ">";
 					});
+					if(reply.msg == ''){
+						reply.msg = $(this).find('.reply')
+							.clone()    //clone the element
+							.children() //select all the children
+							.remove()   //remove all the children
+							.end()  //again go back to selected element
+							.text();
+					}
 					reply.tid = topic.id;
 					reply.id = idx;
 				}
@@ -6500,7 +6536,7 @@ Main.k.tabs.playing = function() {
 			hero = Main.k.COMMANDERS[i];
 			if($.inArray(hero,Main.k.HEROES) != -1) {
 				o_hero = Main.k.Profiles.get(hero);
-				if (!o_hero.dead) {
+				if (!Main.k.Profiles.hasStatusWhichRemoveTitle(o_hero)) {
 					commander_nb++;
 					$("<img>")
 						.addClass("body " + hero)
@@ -6530,7 +6566,7 @@ Main.k.tabs.playing = function() {
 			hero = Main.k.ADMINS[i];
 			if($.inArray(hero,Main.k.HEROES) != -1) {
 				o_hero = Main.k.Profiles.get(hero);
-				if (!o_hero.dead) {
+				if (!Main.k.Profiles.hasStatusWhichRemoveTitle(o_hero)) {
 					admin_nb++;
 					$("<img>")
 						.addClass("body " + hero)
@@ -6560,7 +6596,7 @@ Main.k.tabs.playing = function() {
 			hero = Main.k.COMMS[i];
 			if($.inArray(hero,Main.k.HEROES) != -1){
 				o_hero = Main.k.Profiles.get(hero);
-				if(!o_hero.dead) {
+				if(!Main.k.Profiles.hasStatusWhichRemoveTitle(o_hero)) {
 					comms_nb++;
 					$("<img>")
 						.addClass("body " + hero)
