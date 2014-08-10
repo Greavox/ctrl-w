@@ -13,7 +13,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b16
+// @version     0.35b17
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -1979,11 +1979,7 @@ Main.k.css.bubbles = function() {
 		background: #38F;\
 		color: #fff;\
 	}\
-	.planet .analyse .buttons .but{\
-		display :inline-block;\
-	}\
 	.planet .analyse .buttons .share-planet.but{\
-		margin-right:5px;\
 		width:20px;\
 	}\
 	").appendTo("head");
@@ -4643,8 +4639,8 @@ Main.k.tabs.playing = function() {
 			$hero_details.append(statuses);
 			$hero_details.append(titles);
 
-			$('#long-notes').val(typeof(o_hero.long_desc) != 'undefined' ? o_hero.long_desc.htmlEncode() : '');
-			$('#tiny-notes').val(o_hero.short_desc.htmlEncode());
+			$('#long-notes').val(typeof(o_hero.long_desc) != 'undefined' ? o_hero.long_desc : '');
+			$('#tiny-notes').val(o_hero.short_desc);
 
 		}else{
 			$("<div>")
@@ -6648,12 +6644,12 @@ Main.k.tabs.playing = function() {
 
 		// Heroes
 		// ----------------------------------- //
-		t = $("<h3>").html(Main.k.text.gettext("équipage").capitalize()).appendTo(leftbar);
-		$("<span>").addClass("displayless").attr("_target", "#crew_list").appendTo(t).on("click", Main.k.ToggleDisplay);
-		$("<div>").attr("id", "crew_list").css("display", "block").appendTo(leftbar);
 		t = $("<h3>").html(Main.k.text.gettext("Présent(s)").capitalize()).appendTo(leftbar);
 		$("<span>").addClass("displaymore").attr("_target", "#heroes_list").appendTo(t).on("click", Main.k.ToggleDisplay);
 		$("<div>").attr("id", "heroes_list").css("display", "none").appendTo(leftbar);
+		t = $("<h3>").html(Main.k.text.gettext("équipage").capitalize()).appendTo(leftbar);
+		$("<span>").addClass("displayless").attr("_target", "#crew_list").appendTo(t).on("click", Main.k.ToggleDisplay);
+		$("<div>").attr("id", "crew_list").css("display", "block").appendTo(leftbar);
 		// ----------------------------------- //
 
 
@@ -7339,12 +7335,7 @@ Main.k.tabs.playing = function() {
 							});
 							return false;
 						});
-
-						if($(this).find('.bin').length > 0){
-							$button_share_planet.prependTo($(this).find('.bin'));
-						}else{
-							$button_share_planet.insertBefore($(this).find('.mtPs '));
-						}
+						$('<td>').append($button_share_planet).insertAfter($(this).find('.buttons td:last-child'));
 					}
 				});
 
