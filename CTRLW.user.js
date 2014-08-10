@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name        CTRL+W
 // @namespace   Mush
+// @license		MIT License (Expat)
 // @include     http://mush.vg/*
 // @include     http://mush.twinoid.com/*
 // @include     http://mush.twinoid.es/*
@@ -12,7 +13,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b15
+// @version     0.35b16
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -50,6 +51,9 @@ Main.k.mushurl = 'http://' + document.domain;
 Main.k.debug = false;
 Main.k.errorList = [];
 
+String.prototype.htmlEncode = function() {
+	return $('<div/>').text(this).html();
+};
 String.prototype.capitalize = function() {
 	return this.replace(/(?:^|\s)\S/g, function(a) {
 		return a.toUpperCase();
@@ -64,6 +68,16 @@ String.prototype.replaceFromObj = function(obj) {
   }
   return retStr;
 };
+String.prototype.hashCode = function() {
+	var hash = 0;
+	if (this.length == 0) return hash;
+	for (i = 0; i < this.length; i++) {
+		char = this.charCodeAt(i);
+		hash = ((hash << 5) - hash) + char;
+		hash = hash & hash; // Convert to 32bit integer
+	}
+	return hash;
+}
 RegExp.escape = function(s) {
 	return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
@@ -323,10 +337,6 @@ Main.k.initData = function() {
 	};
 };
 Main.k.init = function(){
-	//hack for new session detection
-	if($('#menuBar').find('a').length < 4){
-		localStorage.setItem('ctrlw_newsession',1);
-	}
 
 	Main.k.initLang();
 	Main.k.Options.init();
@@ -599,6 +609,7 @@ Main.k.quickNoticeError = function(msg){
 	Main.k.quickNotice(msg,'error');
 };
 /**
+ * @param {object} topic
  * @return string
  */
 Main.k.GetHeroNameFromTopic = function(topic) {
@@ -648,9 +659,9 @@ Main.k.displayRemainingCyclesToNextLevel = function (){
 		}
 		if(regex.exec(attr) != null){
 			if(Main.k.Game.data.player_status == 'gold'){
-				xp_by_cycle = 2
+				xp_by_cycle = 2;
 			}else{
-				xp_by_cycle = 1
+				xp_by_cycle = 1;
 			}
 			var i_cycles = RegExp.$2;
 			var i_cycles_save = localStorage.getItem('ctrlw_remaining_cycles');
@@ -1783,6 +1794,31 @@ Main.k.css.ingame = function() {
 	.profile-custom-infos label{\
 		margin-right: 10px;\
 	}\
+	#profile-notes{\
+	}\
+	#profile-notes textarea{\
+		height:40px;\
+	    display: block;\
+	    margin-bottom: 12px;\
+	    margin-top: 5px;\
+	    resize: none;\
+	}\
+	#profile-notes textarea:last-child{\
+		height:146px;\
+		overflow: hidden;\
+	}\
+	#profile-notes .actions {\
+		bottom: 3px;\
+		left: 0;\
+		position: absolute;\
+		right: 0;\
+		text-align: center;\
+	}\
+	#profile-notes .profile-content{\
+		height: 260px;\
+		overflow: hidden;\
+		padding: 0 10px;\
+	}\
 	/** pour régler les probleme du au scale css3 sur firefox**/\
 	#char_col .sheetbgcontent table td.two .extrapa{\
 		position:relative;\
@@ -1790,7 +1826,8 @@ Main.k.css.ingame = function() {
 	#cdMainContent{\
 		position:relative;\
 	}\
-	.ctrlw_col input{\
+	.ctrlw_col input,\
+	.ctrlw_col textarea{\
 		color: #090A61;\
 	}\
 	.ctrlw-row-options{\
@@ -1941,6 +1978,13 @@ Main.k.css.bubbles = function() {
 		text-shadow: none! important;\
 		background: #38F;\
 		color: #fff;\
+	}\
+	.planet .analyse .buttons .but{\
+		display :inline-block;\
+	}\
+	.planet .analyse .buttons .share-planet.but{\
+		margin-right:5px;\
+		width:20px;\
 	}\
 	").appendTo("head");
 };
@@ -2140,13 +2184,21 @@ Main.k.tabs.playing = function() {
 		}
 
 		$desc.append('<div class="clear"></div>');
-		$desc.append('<p>' + o_hero.short_desc + '</p>');
+		$desc.append('<p>' + o_hero.short_desc.htmlEncode().replace(/([\r\n]+)/g, "<br/>") + '</p>');
 
 
 		$desc.append('<p><strong>' + Main.k.text.gettext("Cliquez pour plus d'informations") + '</strong></p>');
 		$(this)
 			.attr("_title", $tooltip_title.html())
 			.attr("_desc", $desc.html())
+			.on("mouseover", Main.k.CustomTip)
+			.on("mouseout", Main.hideTip);
+		return $(this);
+	};
+	$.fn.addTooltip = function(title,text){
+		$(this)
+			.attr("_title", title)
+			.attr("_desc", text)
 			.on("mouseover", Main.k.CustomTip)
 			.on("mouseout", Main.hideTip);
 		return $(this);
@@ -2912,7 +2964,7 @@ Main.k.tabs.playing = function() {
 		if(typeof(lastVersion) != 'undefined' && lastVersion < Main.k.version){
 			version_update = lastVersion;
 		}else{
-			version_update = Main.k.version
+			version_update = Main.k.version;
 		}
 		if(localStorage.getItem('ctrlw_update_cache') == null){
 			Main.k.UpdateCheck.b_in_progress = true;
@@ -3206,7 +3258,7 @@ Main.k.tabs.playing = function() {
 	/**
 	 * @return string;
 	 */
-	Main.k.FormatResearch = function() {
+	Main.k.FormatResearch = function(short) {
 		var ret = "**//"+Main.k.text.gettext("Recherches")+" : //**";
 
 		var parse = function(t) {
@@ -3226,9 +3278,11 @@ Main.k.tabs.playing = function() {
 			var desc = parse($(this).find("div.desc").html().trim());
 			var bonus1 = /<strong>([^<]+)<\/strong>/.exec($(this).find("div.suggestprogress ul li img").first().attr("onmouseover"))[1].trim().replace("Médeçin", "Médecin");
 			var bonus2 = /<strong>([^<]+)<\/strong>/.exec($(this).find("div.suggestprogress ul li img").last().attr("onmouseover"))[1].trim().replace("Médeçin", "Médecin");
-			ret += "\n**" + name + "** - " + pct + "\n";
-			ret += "" + desc + "\n";
-			ret += "Bonus : //" + bonus1 + "//, //" + bonus2 + "//";
+			ret += "\n**" + name + "** - " + pct;
+			if(typeof(short) == 'undefined' ||  short != true ) {
+				ret += "\n" + desc + "\n";
+				ret += "Bonus : //" + bonus1 + "//, //" + bonus2 + "//";
+			}
 		});
 
 		return ret;
@@ -3236,7 +3290,7 @@ Main.k.tabs.playing = function() {
 	/**
 	 * @return string;
 	 */
-	Main.k.FormatPlanets = function() {//TODO: MULTILANG
+	Main.k.FormatPlanets = function(index) {//TODO: MULTILANG
 		var ret = "**//Planètes : //**";
 
 		var parse = function(t) {
@@ -3249,6 +3303,9 @@ Main.k.tabs.playing = function() {
 		};
 
 		$("#navModule").find(".planet").not(".planetoff").each(function(i) {
+			if(index != null && i != index){
+				return true;
+			}
 			// Name + Planet img
 			var name = $(this).find("h3").html().trim();
 			var img = $(this).find("img.previmg").attr("src");
@@ -3291,6 +3348,121 @@ Main.k.tabs.playing = function() {
 
 		return ret;
 	};
+	/**
+	 * @return string;
+	 */
+	Main.k.FormatComm = function(){
+        var comm = "//**" + Main.k.text.gettext('Communications:') + "**//";
+        
+        var parse = function(t) {
+			t = t.replace(/<img\s+src=\"\/img\/icons\/ui\/triumph.png\"\s+alt=\"triomphe\"[\/\s]*>/ig, ":mush_triumph:");
+			t = t.replace(/&nbsp;/ig, " ");
+			t = t.replace(/\n/ig, "");
+			t = t.replace(/<p>/ig, " ");
+			t = t.replace(/<\/?[^>]+>/g, "");
+			return t;
+		};
+        var $trackerModule = $('#trackerModule');
+		$trackerModule.find('.sensors').each(function() {
+            
+        	var bdd = $(this).find("h2").html().trim();
+            comm += "\n//" + bdd + "//: ";
+            var data = [];
+            $(this).find("p").each(function() {
+				data.push($(this).find("em").html());
+			});
+            
+            if (data.length < 2){
+                data.push(' :alert:');
+            }else{
+				data.pop();
+				data.push(' :com:');
+			}
+            comm += data.join("");
+        });
+
+		$trackerModule.find('.neron').each(function() {
+            
+        	var version = $(this).find("h2").html().trim();
+            comm += "\n//" + version + "//\n";
+            
+        });
+		$trackerModule.find('.xyloph').each(function() {
+            
+            var bdd = $(this).find("h2").html().trim();
+            var nbr = 0;
+            var data = [];
+            var datanamereg = /<h1>([^<]+)<\/h1>/;
+            $(this).find("li").not(".undone").each(function() {
+                nbr += 1;
+                data.push(datanamereg.exec($(this).attr("onmouseover"))[1].replace('\\',''));
+			});
+            
+            if (nbr == 12){
+            	comm += "//" + bdd + "//: ";
+                comm += nbr + "/12\n";
+            }
+            else{
+                if (nbr >0){
+           		    comm += "//" + bdd + "//: ";
+            		comm += nbr + "/12"+"\n ▶ **"+ data.join("** \n ▶ **")+"**\n";
+                }
+            }
+            
+            
+            
+        });
+
+		$trackerModule.find('.network .bases').each(function() {
+           
+            var base = "//" + Main.k.text.gettext('Décodage: ') + "//";
+         	var base_decode;
+            $(this).find("li").each(function(){
+                
+                base_decode = $(this).attr("data-id");
+                $(this).find(".percent").not(".off").each(function(){
+                    base += base_decode+ "► " + $(this).html().trim();
+                });
+            });
+            
+            if (base != "//Décodage: //"){
+            	comm += base +"\n";
+            }
+            
+            var base_fini = "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//";
+            var _base ="";
+            var base_signal_perdu = "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//";
+            var base_nom = "";
+            var nbr_base_perdu = 0;
+            
+            $(this).find("li").each(function(){
+                
+                base_nom = $(this).attr("data-id");
+                $(this).find("h3").each(function(){
+                    if (($(this).html().trim()) != "???" && ($(this).html().trim()) != ""){
+                        
+                        base_fini += $(this).html().trim() +", ";
+                    }
+                });
+                
+                $(this).find("span").not(".percent").each(function(){
+                   
+                    base_signal_perdu += base_nom +", ";
+                });
+            });
+            
+            if (base_fini != "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//"){
+                comm += base_fini;
+                comm = comm.substring(0,comm.length-2)+"\n";
+            }
+            if (base_signal_perdu != "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//"){
+                comm += base_signal_perdu.substring(0,base_signal_perdu.length-2);
+            }
+            
+            
+        });
+        return comm;
+    	};
 	/**
 	 * @return string;
 	 */
@@ -3746,7 +3918,7 @@ Main.k.tabs.playing = function() {
 						Main.syncInvOffset(null,true);
 						Main.doChatPacks();
 						Main.topChat();
-						Main.onChanDone(ChatType.Local[1],true)
+						Main.onChanDone(ChatType.Local[1],true);
 					}).dequeue("myQueue");
 				}
 			}, 230);
@@ -3811,7 +3983,9 @@ Main.k.tabs.playing = function() {
 			}).html(Main.k.text.gettext("Script développé par <a href='http://twinoid.com/user/8297'>kill0u</a>, maintenu par <a href='http://twinoid.com/user/1244143'>badconker</a><br/>"+
 			"Le logo, les images (mise en forme personnalisée des messages) et le design du site web ont été faits par "+
 			"<a href='http://twinoid.com/user/2992052'>Gnux</a>.<br/>"+
-			Main.k.text.gettext("Contributeurs : ") + "<a href='http://twinoid.com/user/362197'>FloKy</a>, <a href='http://twinoid.com/user/8011565'>NightExcessive</a><br/>"+
+			Main.k.text.gettext("Contributeurs : ") + "<a href='http://twinoid.com/user/362197'>FloKy</a>" +
+				", <a href='http://twinoid.com/user/5140898'>_Fraise__</a>"+
+				", <a href='http://twinoid.com/user/8011565'>NightExcessive</a><br/>"+
 			Main.k.text.gettext("Traducteurs : ") + "<a href='http://twinoid.com/user/7845671'>Avistew</a>")).appendTo(td);
 			
 			// Coming soon
@@ -4160,7 +4334,7 @@ Main.k.tabs.playing = function() {
 						button.find('img').hide();
 						button.find('.ctrlw_normal').show();
 					}else{
-						Main.k.quickNoticeError('Sync push, fatal error')
+						Main.k.quickNoticeError('Sync push, fatal error');
 					}
 
 
@@ -4225,7 +4399,7 @@ Main.k.tabs.playing = function() {
 			Main.k.Profiles.initialized = true;
 			var h = Main.k.h[Main.k.Profiles.current];
 			console.log(h);
-			var td = $("<td>").addClass("chat_box").css({
+			var td = $("<td>").addClass("chat_box ctrlw_col").css({
 				"padding-right": "6px",
 				"padding-top": "1px",
 				transform: "scale(0,1)",
@@ -4269,17 +4443,70 @@ Main.k.tabs.playing = function() {
 			var r = $("<div>").addClass("right").css({
 				"margin-top": "10px"
 			}).appendTo(td);
-			var rbg = $("<div>").attr("id", "kProfileLogs").addClass("rightbg chattext").css({
+			var $notes = $("<div>").attr("id", "profile-notes").addClass("rightbg chattext").css({
 				resize: "none",
-				height: "280px",
+				height: "293px",
 				"min-height": "0"
 			}).appendTo(r);
+			$notes
+				.append(
+					$('<div>').addClass('profile-content')
+						.append(
+							$('<label>')
+								.attr('for','tiny-notes')
+								.html('<img src="/img/icons/ui/infoalert.png" style="vertical-align: text-bottom"/> '+Main.k.text.gettext('Notes résumées :'))
+								.addTooltip(Main.k.text.gettext('Notes résumées :'),Main.k.text.gettext('Ce texte apparaitra au survol de la souris sur l\'icone du personnage à la place de la description originale du jeu'))
+						)
+							.append(
+							$('<textarea>')
+								.addClass('chatbox')
+								.attr('id','tiny-notes')
+								.on('focus',function(){$(this).addClass('chatboxfocus');})
+								.on('keyup',function(){
+									$('.desc-submit-button img').hide();
+									$('.desc-submit-button img.desc-ko').show();
+								})
+						)
+							.append(
+							$('<label>')
+								.attr('for','long-notes')
+								.text(Main.k.text.gettext('Notes détaillées :'))
+						)
+							.append(
+							$('<textarea>')
+								.addClass('chatbox')
+								.attr('id','long-notes')
+								.on('focus',function(){$(this).addClass('chatboxfocus');})
+								.on('keyup',function(){
+									$('.desc-submit-button img').hide();
+									$('.desc-submit-button img.desc-ko').show();
+								})
+						)
+				);
+			var $actions = $('<div>').addClass('actions').appendTo($notes);
+
+			Main.k.MakeButton(
+					"<img src='/img/icons/ui/alert.png' style=\"display:none\" class=\"desc-ko\" /><img class=\"desc-ok\" style='vertical-align:text-bottom' src='/img/icons/ui/projects_done.png' /> "+Main.k.text.gettext('Enregistrer'),
+					null,
+					function(e){
+						e.preventDefault();
+						var profile = Main.k.Profiles.get();
+						profile.short_desc = $('#tiny-notes').val();
+						profile.long_desc = $('#long-notes').val();
+						Main.k.Profiles.set(profile);
+						$('.desc-submit-button img').hide();
+						$('.desc-submit-button img.desc-ok').show();
+					}
+				)
+				.css("display", "inline-block")
+				.addClass('desc-submit-button')
+				.appendTo($actions);
 
 			var close = $("<div>").css({
 				"text-align": "center",
 				margin: "10px 0 0"
 			}).appendTo(td);
-			Main.k.MakeButton("<img src='/img/icons/ui/pageleft.png' /> Retour au jeu", null, Main.k.Profiles.close).css("display", "inline-block").appendTo(close);
+			Main.k.MakeButton("<img src='/img/icons/ui/pageleft.png' /> "+Main.k.text.gettext('Retour au jeu'), null, Main.k.Profiles.close).css("display", "inline-block").appendTo(close);
 
 		}
 		Main.k.Profiles.update();
@@ -4415,6 +4642,10 @@ Main.k.tabs.playing = function() {
 			$hero_details.append(skills);
 			$hero_details.append(statuses);
 			$hero_details.append(titles);
+
+			$('#long-notes').val(typeof(o_hero.long_desc) != 'undefined' ? o_hero.long_desc.htmlEncode() : '');
+			$('#tiny-notes').val(o_hero.short_desc.htmlEncode());
+
 		}else{
 			$("<div>")
 				.html(Main.k.text.gettext('Aucune donnée enregistrée'))
@@ -4514,6 +4745,7 @@ Main.k.tabs.playing = function() {
 			'name': Main.k.h[dev_surname].name,
 			'dev_surname': dev_surname,
 			'short_desc': Main.k.h[dev_surname].short_desc,
+			'long_desc': '',
 			'statuses': [],
 			'titles': [],
 			'skills': [],
@@ -4543,7 +4775,7 @@ Main.k.tabs.playing = function() {
 		var profiles = this.data;
 		if(profiles != null && typeof(profiles[hero]) != 'undefined') {
 			console.groupEnd();
-			return profiles[hero]
+			return profiles[hero];
 		}else{
 			console.groupEnd();
 			return Main.k.Profiles.create(hero);
@@ -4583,8 +4815,6 @@ Main.k.tabs.playing = function() {
 		profile.titles = [];
 		profile.skills = [];
 		profile.spores = null;
-
-		profile.short_desc = o_hero_orig.short_desc;
 		profile.name = o_hero_orig.name;
 		profile.dev_surname = o_hero_orig.dev_surname;
 		profile.dead = false;
@@ -6261,11 +6491,13 @@ Main.k.tabs.playing = function() {
 	Main.k.AliveHeroes = [];
 	Main.k.MushInit = function() {
 		console.log('MushInit');
-		if (localStorage.getItem('ctrlw_newsession') != null) {
-			console.log('ctrlw_newsession');
-			localStorage.removeItem('ctrlw_newsession');
+		var cook_session = js.Cookie.get("ctrlwsession");
+		var sid = js.Cookie.get("sid");
+		if(typeof(cook_session) == 'undefined' || sid.hashCode() != cook_session){
 			Main.k.Sync.pull();
 		}
+		js.Cookie.set("ctrlwsession",sid.hashCode(),420000000);
+
 		Main.k.Profiles.load();
 		Main.k.Manager.loadMsgsPrerecorded();
 		Main.k.AliveHeroes = [];
@@ -6352,12 +6584,13 @@ Main.k.tabs.playing = function() {
 			}, 10);
 
 		});
-		if (Main.k.Game.data.day < 3){
+		if (localStorage.getItem('ctrlw_newgame') != null){
 			Main.k.MakeButton(Main.k.text.gettext("Nouvelle partie ?"), null, null, Main.k.text.gettext("Nouvelle partie"),
 				Main.k.text.gettext("Vous venez de commencer une nouvelle partie ? Utilisez ce bouton pour supprimer les informations de votre ancienne partie"))
 				.attr('id', 'button_new_game')
 				.appendTo(leftbar).find("a").on("mousedown", function () {
 					if (confirm(Main.k.text.gettext("Êtes vous sûr de vouloir effacer les informations de la partie précédente ?"))) {
+						localStorage.removeItem('ctrlw_newgame');
 						Main.k.Profiles.clear();
 						Main.k.MushUpdate();
 						$('#button_new_game').remove();
@@ -6408,14 +6641,17 @@ Main.k.tabs.playing = function() {
 		// Heroes' titles
 		// ----------------------------------- //
 		var t = $('<h3 class="titles_title"></h3>').html(Main.k.text.gettext("titres").capitalize()).appendTo(leftbar);
-		$("<span>").addClass("displaymore").attr("_target", "#titles_list").appendTo(t).on("click", Main.k.ToggleDisplay);
-		$("<div>").addClass("titles_list").attr("id", "titles_list").css("display", "none").appendTo(leftbar);
+		$("<span>").addClass("displayless").attr("_target", "#titles_list").appendTo(t).on("click", Main.k.ToggleDisplay);
+		$("<div>").addClass("titles_list").attr("id", "titles_list").appendTo(leftbar);
 		// ----------------------------------- //
 
 
 		// Heroes
 		// ----------------------------------- //
 		t = $("<h3>").html(Main.k.text.gettext("équipage").capitalize()).appendTo(leftbar);
+		$("<span>").addClass("displayless").attr("_target", "#crew_list").appendTo(t).on("click", Main.k.ToggleDisplay);
+		$("<div>").attr("id", "crew_list").css("display", "block").appendTo(leftbar);
+		t = $("<h3>").html(Main.k.text.gettext("Présent(s)").capitalize()).appendTo(leftbar);
 		$("<span>").addClass("displaymore").attr("_target", "#heroes_list").appendTo(t).on("click", Main.k.ToggleDisplay);
 		$("<div>").attr("id", "heroes_list").css("display", "none").appendTo(leftbar);
 		// ----------------------------------- //
@@ -6476,6 +6712,7 @@ Main.k.tabs.playing = function() {
 		// Script updates
 		// ----------------------------------- //
 		localStorage.removeItem('ctrlw_update_cache');
+		localStorage.removeItem('ctrlw_remaining_cycles',0);
 		// ----------------------------------- //
 	};
 	Main.k.MushUpdate = function() {
@@ -6754,8 +6991,9 @@ Main.k.tabs.playing = function() {
 			heroDiv.append($save);
 
 		}
-		// Display unavailable heroes
-		var missingDiv = $("<div>").addClass("missingheroes").appendTo(heroes_list);
+		var crew_list = $("#crew_list").empty();
+		// Display all heroes
+		var missingDiv = $("<div>").addClass("missingheroes").appendTo(crew_list);
 		j=0;
 		var $div_hero;
 		var a_divs_heroes = {
@@ -6769,60 +7007,58 @@ Main.k.tabs.playing = function() {
 				inactive_status = null;
 				var hero = Main.k.HEROES[i];
 				var h = Main.k.h[hero];
-				if (!Main.k.ArrayContains(Main.k.heroes_same_room, hero)) {
-					if (j % 5 == 0) $("<br/>").appendTo(missingDiv);
-					j++;
-					bubble = hero.replace(/(\s)/g, "_").toLowerCase();
-					o_hero = Main.k.Profiles.get(hero);
-					$div_hero = $('<div>').css({
-							display: 'inline-block',
-							position: 'relative'
+				if (j % 5 == 0) $("<br/>").appendTo(missingDiv);
+				j++;
+				bubble = hero.replace(/(\s)/g, "_").toLowerCase();
+				o_hero = Main.k.Profiles.get(hero);
+				$div_hero = $('<div>').css({
+						display: 'inline-block',
+						position: 'relative'
+					})
+					.append(
+						$("<img>").addClass("body " + bubble)
+							.attr("src", "/img/design/pixel.gif")
+							.css("cursor", "pointer")
+							.addHeroDescToolTip(hero)
+							.on("click", function () {
+								Main.k.Profiles.display(hero);
+							})
+					);
+
+				for( var inc = 0; inc < o_hero.statuses.length; inc ++){
+					/** @type {{desc:string,img:string, name:string}} **/
+					status = o_hero.statuses[inc];
+					if($.inArray(status.img,['sleepy','noob']) != -1){
+						inactive_status = status.img;
+					}
+				}
+				if(o_hero.dead == true){
+					a_divs_heroes['dead'].push($div_hero);
+					$('<img>').attr({
+							src: '/img/icons/ui/dead.png'
 						})
-						.append(
-							$("<img>").addClass("body " + bubble)
-								.attr("src", "/img/design/pixel.gif")
-								.css("cursor", "pointer")
-								.addHeroDescToolTip(hero)
-								.on("click", function () {
-									Main.k.Profiles.display(hero);
-								})
-						);
+						.css({
+							position: 'absolute',
+							bottom: '-6px',
+							right: '-2px',
+							'pointer-events': 'none'
+						})
+						.appendTo($div_hero);
+				}else if(inactive_status != null){
+					a_divs_heroes['inactive'].push($div_hero);
+					$('<img>').attr({
+							src: '/img/icons/ui/'+inactive_status+'.png'
+						})
+						.css({
+							position: 'absolute',
+							bottom: '-6px',
+							right: '-2px',
+							'pointer-events': 'none'
+						})
+						.appendTo($div_hero);
+				}else{
+					a_divs_heroes['alive'].push($div_hero);
 
-					for( var inc = 0; inc < o_hero.statuses.length; inc ++){
-						/** @type {{desc:string,img:string, name:string}} **/
-						status = o_hero.statuses[inc];
-						if($.inArray(status.img,['sleepy','noob']) != -1){
-							inactive_status = status.img;
-						}
-					}
-					if(o_hero.dead == true){
-						a_divs_heroes['dead'].push($div_hero);
-						$('<img>').attr({
-								src: '/img/icons/ui/dead.png'
-							})
-							.css({
-								position: 'absolute',
-								bottom: '-6px',
-								right: '-2px',
-								'pointer-events': 'none'
-							})
-							.appendTo($div_hero);
-					}else if(inactive_status != null){
-						a_divs_heroes['inactive'].push($div_hero);
-						$('<img>').attr({
-								src: '/img/icons/ui/'+inactive_status+'.png'
-							})
-							.css({
-								position: 'absolute',
-								bottom: '-6px',
-								right: '-2px',
-								'pointer-events': 'none'
-							})
-							.appendTo($div_hero);
-					}else{
-						a_divs_heroes['alive'].push($div_hero);
-
-					}
 				}
 			})();
 		}
@@ -6990,7 +7226,7 @@ Main.k.tabs.playing = function() {
 			});
 
 			// Research actions
-			Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> "+Main.k.text.gettext("Partager"), null, null, Main.k.text.gettext("Partager les recherches"),
+			Main.k.MakeButton("<img src='/img/icons/ui/guide.png' /> "+Main.k.text.gettext("Partager"), null, null, Main.k.text.gettext("Partager les recherches"),
 				Main.k.text.gettext("<p>Insère la liste de recherches dans la zone de texte active, de la forme&nbsp;:</p><p>" +
 				"<li><strong>Nom de la recherche</strong> - 0%<br/>Description de la recherche<br/>Bonus : <i>Biologiste</i>, <i>Médecin</i></li>" +
 				"<li><strong>Nom de la recherche</strong> - 0%<br/>Description de la recherche<br/>Bonus : <i>Biologiste</i>, <i>Médecin</i></li>" +
@@ -7003,6 +7239,21 @@ Main.k.tabs.playing = function() {
 				});
 				return false;
 			});
+
+			Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> "+Main.k.text.gettext("Partager v2"), null, null, Main.k.text.gettext("Partager les recherches"),
+				Main.k.text.gettext("<p>Insère la liste de recherches dans la zone de texte active, de la forme&nbsp;:</p><p>" +
+					"<li><strong>Nom de la recherche</strong> - 0%</li>" +
+					"<li><strong>Nom de la recherche</strong> - 0%</li>" +
+					"<li><strong>Nom de la recherche</strong> - 0%</li></p>")
+			).appendTo(project_list)
+				.find("a").addClass("shareresearchbtn").on("mousedown", function(e) {
+					$('textarea:focus').each(function(e) {
+						var txt = Main.k.FormatResearch(true);
+						$(this).insertAtCaret(txt);
+					});
+					return false;
+				});
+
 			$research_module.find(" ul.inventory li.item").on("click", function(){
 				Main.selectItem($(this));
 			});
@@ -7067,7 +7318,34 @@ Main.k.tabs.playing = function() {
 					var planet = $("<div>").addClass("planetpreview").appendTo(projectsdiv);
 					$("<img>").attr("width", "40")
 					.attr("src", $(this).find("img.previmg").attr("src"))
+					.css({'cursor':'pointer'})
+					.on("mousedown", function(e) {
+						$('textarea:focus').each(function(e) {
+							var txt = Main.k.FormatPlanets(i);
+							$(this).insertAtCaret(txt);
+						});
+						return false;
+					})
 					.appendTo(planet);
+					if($(this).find('.share-planet').length == 0){
+						var $button_share_planet = Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> ", null, null, Main.k.text.gettext("Partager la planète"),
+							Main.k.text.gettext("Partage uniquement cette planète dans l'inventaire")
+						)
+						.addClass('share-planet');
+						$button_share_planet.find("a").on("mousedown", function(e) {
+							$('textarea:focus').each(function(e) {
+								var txt = Main.k.FormatPlanets(i);
+								$(this).insertAtCaret(txt);
+							});
+							return false;
+						});
+
+						if($(this).find('.bin').length > 0){
+							$button_share_planet.prependTo($(this).find('.bin'));
+						}else{
+							$button_share_planet.insertBefore($(this).find('.mtPs '));
+						}
+					}
 				});
 
 				// Planets actions
@@ -7077,7 +7355,7 @@ Main.k.tabs.playing = function() {
 				).appendTo(project_list)
 				.find("a").on("mousedown", function(e) {
 					$('textarea:focus').each(function(e) {
-						var txt = Main.k.FormatPlanets();
+						var txt = Main.k.FormatPlanets(null);
 						$(this).insertAtCaret(txt);
 					});
 					return false;
@@ -7101,7 +7379,37 @@ Main.k.tabs.playing = function() {
 				});
 				return false;
 			});
-		}
+			//Comm
+		}else if ($("#trackerModule").length > 0){
+            var t = $("<h3>").html(Main.k.text.gettext("Com.")).appendTo(project_list);
+            $("<span>").addClass("displayless").attr("_target", ".commPreview")
+				.on("click", Main.k.ToggleDisplay).appendTo(t);
+            var nav = $("#trackerModule");
+            var comm = $("<div>").addClass("commPreview").css({'text-align':'center','cursor':'pointer'}).appendTo(project_list);
+            var $img_com = $("<img>")
+					.attr("src", "/img/design/sensor01.png")
+                    .on("mousedown", function(e) {
+					$('textarea:focus').each(function(e) {
+						var txt = Main.k.FormatComm();
+						$(this).insertAtCaret(txt);
+					});
+					return false;
+					}).appendTo(comm);
+			setInterval(function(){
+				$img_com.attr('src',$('#trackerModule').find('.sensors img').attr('src'));
+			},100);
+            //TODO multi
+            Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> "+Main.k.text.gettext("Partager"), null, null, null,
+					"TODO: aperçu"
+				).appendTo(project_list)
+				.find("a").on("mousedown", function(e) {
+					$('textarea:focus').each(function(e) {
+						var txt = Main.k.FormatComm();
+						$(this).insertAtCaret(txt);
+					});
+					return false;
+				});
+        }
 
 		// Plants
 		$usLeftbar.find("#plantmanager").remove();
@@ -7377,6 +7685,19 @@ Main.k.tabs.myprofile = function() {
 		sel.addClass('active');
 		sel.siblings().removeClass('active');
 	}
+
+	/**** MY FILE ****/
+	$('.cdTripEntry td .char').css('margin','5px 0');
+	$('.cdTripEntry').each(function(){
+		$(this).find('td').eq(-2).css('width','71px');
+	});
+	$('.cdTripEntry .new').remove();
+	$('.cdTripPrevious').on('click',function(){
+		if($('.cdTripPage').text() > 1){
+			$('.cdTripPrevious').show();
+		}
+	});
+
 };
 Main.k.tabs.ranking = function() {
 
@@ -7634,6 +7955,10 @@ if (Main.k.playing && $("#topinfo_bar").length > 0) {
 		top: "180px"
 	});
 	$("a.logostart").css("top", "20px");
+//new game
+}else if($('.choosehero2').length > 0){
+	Main.k.Game.clear();
+	localStorage.setItem('ctrlw_newgame',1);
 }
 
 if (Main.k.debug) {Main.k.displayBug();}
