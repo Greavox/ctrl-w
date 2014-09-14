@@ -13,7 +13,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35b20
+// @version     0.35b22
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -4210,7 +4210,7 @@ Main.k.tabs.playing = function() {
 							if(typeof(json.sync.msgs_prerecorded) != 'undefined'){
 								Main.k.Manager.loadMsgsPrerecorded(json.sync.msgs_prerecorded,true);
 							}
-							Main.k.quickNotice(Main.k.text.gettext('Mise à jour des données locales'));
+							Main.k.quickNotice(Main.k.text.gettext('Synchronisation effectuée'));
 							Main.k.MushUpdate();
 						}
 						dfd.resolve();
