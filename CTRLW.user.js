@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CTRL+W
 // @namespace   Mush
-// @license		MIT License (Expat)
+// @license     MIT License (Expat)
 // @include     http://mush.vg/*
 // @include     http://mush.twinoid.com/*
 // @include     http://mush.twinoid.es/*
@@ -9,7 +9,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_getResourceText
-// @grant	unsafeWindow
+// @grant       unsafeWindow
 // @require     https://raw.github.com/badconker/ctrl-w/beta/lib/jquery-1.11.1.min.js
 // @require     https://raw.github.com/badconker/ctrl-w/beta/lib/Gettext.js
 // @resource    css:jgrowl https://raw.github.com/badconker/ctrl-w/beta/lib/jquery.jgrowl.css
@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35
+// @version     0.35.1
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -2687,8 +2687,8 @@ Main.k.tabs.playing = function() {
 	 * @param lastVersion
 	 */
 	Main.k.UpdateCheckScriptVersion = function(json,lastVersion){
-		Main.k.UpdateData.currversion = json.numero;
 		json = JSON.parse(json.response);
+		Main.k.UpdateData.currversion = json.numero;
 		if(typeof(json['changelog_long_'+Main.k.lang]) != 'undefined'){
 			Main.k.UpdateData.changelog = json['changelog_long_'+Main.k.lang];
 		}else{
