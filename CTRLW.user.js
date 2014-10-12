@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35.6
+// @version     0.35.7
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -2394,7 +2394,7 @@ Main.k.tabs.playing = function() {
 					var jq = new $(".cdWallChannel");
 					jq.scrollTop(scr + 100);
 				};
-				exportFunction(sendChatProc, unsafeWindow, {defineAs: "sendChatProc"});
+				unsafeWindow.sendChatProc = exportFunction(sendChatProc, unsafeWindow, {defineAs: "sendChatProc"});
 				if(Main.isTuto()) {
 					updtArr.unshift("floating_ui_start");
 					updtArr.unshift("cdDialogs");
