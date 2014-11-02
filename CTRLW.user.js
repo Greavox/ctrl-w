@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35.11
+// @version     0.35.12
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -330,7 +330,6 @@ Main.k.initData = function() {
 
 	Main.k.compInactiveMush = [];
 	Main.k.compInactiveMush["cold_blood"] = true;
-	Main.k.compInactiveMush["sturdy"] = true;
 	Main.k.compInactiveMush["opportunist"] = true;
 	Main.k.compInactiveMush["optimistic"] = true;
 	Main.k.compInactiveMush["mycologist"] = true;
