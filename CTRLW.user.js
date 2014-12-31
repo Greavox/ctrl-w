@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35.13b1
+// @version     0.35.13
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -7502,11 +7502,10 @@ Main.k.tabs.playing = function() {
 
 		}
 		Main.k.heroes_same_room = tab_heroes_same_room;
+		var existing_heroes = ['finola','chao'];
 
 		if($('.groupConf').length > 0 && $('.groupConf img[src*="use_andrek"]').length == 0){
-			var existing_heroes = ['finola','chao'] ;
-		}else{
-			var existing_heroes = ['andie','derek'];
+			existing_heroes = ['andie','derek'];
 		}
 
 		//replace heroes
@@ -7632,7 +7631,6 @@ Main.k.tabs.ranking = function() {
 		position: absolute;\
 		top: 30px; left: 250px;\
 		bottom: 30px; right: 10px;\
-		z-index: 10;\
 		font-size: 24pt;\
 		color: #FFF;\
 		text-align: left;\
