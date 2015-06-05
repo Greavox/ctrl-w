@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35.18
+// @version     0.35.19b1
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -414,6 +414,7 @@ Main.k.getHeroBySurname = function(dev_surname) {
 	}
 	return null;
 };
+// ************ NEW: CASTING SUBMENU ************
 Main.k.displayMainMenu = function() {
 	Main.k.css.customMenu();
 
@@ -429,15 +430,13 @@ Main.k.displayMainMenu = function() {
 	var account = $("<li class='kmenuel'><a href='"+Main.k.mushurl+"/me'>"+Main.k.text.gettext("Mon compte")+"</a></li>").appendTo(menu);
 
 	if(Main.k.text.gettext("ForumCastingsId") != "ForumCastingsId") {
-		$("<li class='kmenuel'><a href='"+Main.k.mushurl+"/group/list'>"+Main.k.text.gettext("Castings")+"</a></li>").appendTo(menu);
+		var casting = $("<li class='kmenuel' id='ctrlw-main-menu-castings'><a href='"+Main.k.mushurl+"/group/list'>"+Main.k.text.gettext("Castings")+"</a></li>").appendTo(menu);
+
 	}
 	var rankings = $("<li class='kmenuel'><a href='"+Main.k.mushurl+"/ranking'>"+Main.k.text.gettext("Classements")+"</a></li>").appendTo(menu);
 	var forum = $("<li class='kmenuel'><a href='"+Main.k.mushurl+"/tid/forum'>"+Main.k.text.gettext("Forum")+"</a></li>").appendTo(menu);
 	var help = $("<li class='kmenuel last'><a href='"+Main.k.mushurl+"/help'>"+Main.k.text.gettext("Aide")+"</a></li>").appendTo(menu);
 
-	var play_ss = $("<ul>").appendTo(play);
-	$("<a class='kssmenuel' href='"+Main.k.mushurl+"/vending'><li><img src='/img/icons/skills/rebel.png' />"+Main.k.text.gettext("Distributeur")+"</li></a>")
-	.css("display", "none").attr("id", "vendingmenu").appendTo(play_ss);
 
 	var account_ss = $("<ul>").attr("id", "accountmenu").appendTo(account);
 	$("<li><a class='kssmenuel' href='"+Main.k.mushurl+"/me'><img src='/img/icons/skills/persistent.png' />"+Main.k.text.gettext("Expérience")+"</a></li>").appendTo(account_ss);
@@ -498,8 +497,49 @@ Main.k.displayMainMenu = function() {
 
 		$("<li><a class='kssmenuel' href='"+Main.k.mushurl+"/fds'><img src='/img/icons/skills/juge.png' />FDS</a></li>").appendTo(play_ss);
 	}
+	Main.k.updateMainMenu();
 };
+Main.k.updateMainMenu = function (){
+	var casting = $('#ctrlw-main-menu-castings');
 
+	// ************ CASTING SUBMENU ************
+	var casting_ss = casting.find(' > ul');
+	if(casting_ss.length > 0){
+		casting_ss.remove();
+	}
+	casting_ss = $("<ul>").appendTo(casting);
+
+	var castings = Main.k.Game.data.castings;
+
+	if(!$.isEmptyObject(castings)) {	// Check having casting
+		var casting_menu, cast_ss;
+		$.each(castings,function(id, casting){
+			casting_menu = $("<li></li>")
+				.appendTo(casting_ss);
+
+			var a = $("<a class='kssmenuel' href='"+Main.k.mushurl+"/group/"+casting.id+"'><img src='"+casting.icon+"' />"+casting.short_name+"</a>")
+				.appendTo(casting_menu);
+
+			if(casting.long_name != casting.short_name){
+				a
+					.attr("_title", Main.k.text.gettext("Nom complet"))
+					.attr("_desc", "<strong>"+casting.long_name+"</strong>")
+					.on("mouseover", Main.k.CustomTip)
+					.on("mouseout", Main.k.hideTip)
+			}
+
+			cast_ss = $("<ul>").appendTo(casting_menu);
+			$("<li><a href='"+Main.k.mushurl+"/group/page/"+casting.id+"'><img src='" + Main.k.mushurl + "/img/icons/skills/conceptor.png' />"+Main.k.text.gettext("Mémoire")+"</a></li>").appendTo(cast_ss); // Pages
+			$("<li><a href='"+Main.k.mushurl+"/group/nexus/"+casting.id+"'><img src='" + Main.k.mushurl + "/img/icons/skills/logistics.png' />"+Main.k.text.gettext("Nexus")+"</a></li>").appendTo(cast_ss); // Nexus
+			$("<li><a href='"+Main.k.mushurl+"/group/forum/"+casting.id+"'><img src='" + Main.k.servurl + "/img/radioh.png' />"+Main.k.text.gettext("Forum")+"</a></li>").appendTo(cast_ss); // Forum
+			$("<li><a href='"+Main.k.mushurl+"/group/members/"+casting.id+"'><img src='" + Main.k.mushurl + "/img/icons/skills/optimistic.png' />"+Main.k.text.gettext("Membres")+"</a></li>").appendTo(cast_ss); // Members
+			$("<li><a href='"+Main.k.mushurl+"/group/history/"+casting.id+"'><img src='" + Main.k.mushurl + "/img/icons/skills/hunt.png' />"+Main.k.text.gettext("Historique")+"</a></li>").appendTo(cast_ss); // History
+		});
+		$("<li style='height:2px'>&nbsp</li>").appendTo(casting_ss);
+	}
+	$("<li><a href='http://mtrg.kubegb.fr/' class='kssmenuel ext' title='Mush Triumph Remap Generator'><img src='"+Main.k.mushurl+"/img/icons/ui/triumph.png' />MTRG</a></li>").appendTo(casting_ss); // Mush Triumph Remap Generator
+	// ************ NEW: CASTING SUBMENU ************
+}
 /**
  *
  * @param arr
@@ -803,7 +843,7 @@ Main.k.Game.data.day = 0;
 Main.k.Game.data.cycle = 0;
 Main.k.Game.data.xp = 1;
 Main.k.Game.data.player_status = 'bronze';
-Main.k.Game.data.players = {};
+Main.k.Game.data.castings = {};
 Main.k.Game.init = function() {
 	var ctrlw_game = localStorage.getItem("ctrlw_game");
 	if (ctrlw_game == null){
@@ -849,8 +889,23 @@ Main.k.Game.updatePlayerInfos = function() {
 			$this.data.player_status = 'bronze';
 			console.log('le joueur est bronze');
 		}
+
+		$this.data.castings = {};
+		jobject.find('#profile .bgtablesummar:last li').each(function(index, element) {
+			var casting = {};
+			casting.id = $(this).find('a').attr('href').replace('/group/','');
+			casting.icon = $(this).find('img').attr('src');
+			var str = jobject.find('.nameCast a:eq('+index+')').text();
+			casting.long_name = casting.short_name = str;
+			if(str.length > 18){
+				casting.short_name = str.match(/\b(\w)/g).join('.').concat('.');
+			}
+			$this.data.castings[casting.id] = casting;
+		});
+
 		$this.save();
 		Main.k.MushUpdate();
+		Main.k.updateMainMenu();
 		Main.k.quickNotice(Main.k.text.gettext('Infos du joueur mises à jour.'));
 	});
 };
@@ -1013,7 +1068,6 @@ Main.k.css.customMenu = function() {
 		border-left: none;\
 		background: #003baf;\
 		box-shadow: 0 2px 3px 1px rgba(0,0,0,0.3), inset 0px -15px 15px -10px rgba(0,0,0,0.5);\
-		cursor: pointer;\
 	}\
 	.kmenuel a {\
 		display: block;\
@@ -1045,26 +1099,32 @@ Main.k.css.customMenu = function() {
 		border-bottom-right-radius: 8px;\
 	}\
 	.kmenuel ul { display: none; }\
-	.kmenuel ul a { display: inline; height: auto; width: auto; padding: 0; }\
-	.kmenuel:hover ul {\
+	.kmenuel ul a { display: block; width: auto; padding: 0px 5px }\
+	.kmenuel:hover > ul {\
 		display: block;\
 		position: absolute;\
 		width: 100%;\
 		top: 33px;\
 		left: 0;\
-		text-align: center;\
-		z-index: 50;\
+		text-align: right;\
+		z-index: 9;\
+		padding: 0;\
+	}\
+	.kmenuel ul li:hover ul {\
+		display: block;\
+		position: absolute;\
+		width: 100%;\
+		text-align: right;\
+		z-index: 9;\
 		padding: 0;\
 	}\
 	.kmenuel ul li {\
 		text-align: left;\
-		margin: 0 auto;\
+		margin: 0 3px;\
 		display: block! important;\
 		border: 1px solid rgb(2,16,66);\
 		border-top: none! important;\
-		width: 140px;\
-		height: 22px;\
-		padding: 0 15px 0 5px! important;\
+		height: auto;\
 		background: #0071e3;\
 		color: #EEE;\
 		text-shadow: 0 0 1px #000;\
@@ -1075,6 +1135,10 @@ Main.k.css.customMenu = function() {
 		background: #0094ff;\
 		text-shadow: 0 0 3px #000;\
 		box-shadow: 0 2px 3px 1px rgba(0,0,0,0.3), inset 0px 4px 8px 0px rgba(0,0,0,0.3);\
+	}\
+	.kmenuel ul li ul {\
+		right: -160px;\
+		top: 0px;\
 	}\
 	.kmenuel ul li img {\
 		margin-right : 5px;\
@@ -1092,19 +1156,22 @@ Main.k.css.ingame = function() {
 	Main.k.css.bubbles();
 
 	$("<style>").attr("type", "text/css").html("\
+	.tid_editorContent {\
+	  visibility: visible;\
+	 }\
 	.blink-limited {\
-	  -moz-animation: blink 1s 3 linear;\
-	  -webkit-animation: blink 1s 3 linear;\
+		-moz-animation: blink 1s 3 linear;\
+		-webkit-animation: blink 1s 3 linear;\
 	}\
 	@-moz-keyframes blink {\
-	  from { opacity: 1; }\
-	  50% { opacity: 0; }\
-	  to { opacity: 1; }\
+		from { opacity: 1; }\
+		50% { opacity: 0; }\
+		to { opacity: 1; }\
 	}\
 	@-webkit-keyframes blink {\
-	  from { opacity: 1; }\
-	  50% { opacity: 0; }\
-	  to { opacity: 1; }\
+		from { opacity: 1; }\
+		50% { opacity: 0; }\
+		to { opacity: 1; }\
 	}\
 	.but.loading{\
 		overflow:hidden;\
@@ -1423,14 +1490,14 @@ Main.k.css.ingame = function() {
 		opacity: 0.7;\
 	}\
 	.butbg img.alerted {\
-	   vertical-align: -20%;\
-	   margin-right: -10px;\
+		vertical-align: -20%;\
+		margin-right: -10px;\
 	}\
 	.butbg img.alert {\
-	   position: relative;\
-	   left: 0px;\
-	   top: 2px;\
-	   transform: scale(1);\
+		position: relative;\
+		left: 0px;\
+		top: 2px;\
+		transform: scale(1);\
 	}\
 	.usLeftbar .inventory { \
 		padding-left: 4px;\
@@ -1634,23 +1701,23 @@ Main.k.css.ingame = function() {
 		max-height: 80px! important;\
 	}\
 	#tabcustom_content .array_messages_prerecorded { \
-	    padding: 10px 10px 10px 35px;\
-        background-color: #e1f9fe;\
-        border-bottom: 1px solid #aad4e5;\
-        border-top: 1px solid #aad4e5;\
-        text-align: center;\
+		padding: 10px 10px 10px 35px;\
+		background-color: #e1f9fe;\
+		border-bottom: 1px solid #aad4e5;\
+		border-top: 1px solid #aad4e5;\
+		text-align: center;\
 	}\
-    #tabcustom_content .message_prerecorded { \
-        margin: 2px;\
-        padding: 2px 4px;\
-        box-shadow: inset 0 0 3px #aad4e5, 0px 1px 0px #fff;\
-        border: 1px solid #aad4e5;\
-        border-radius : 3px;\
-        cursor:  pointer;\
-    }\
-    #tabcustom_content .selected{ \
-        background-color: #a1c9ce;\
-    }\
+	#tabcustom_content .message_prerecorded { \
+		margin: 2px;\
+		padding: 2px 4px;\
+		box-shadow: inset 0 0 3px #aad4e5, 0px 1px 0px #fff;\
+		border: 1px solid #aad4e5;\
+		border-radius : 3px;\
+		cursor:  pointer;\
+	}\
+	#tabcustom_content .selected{ \
+		background-color: #a1c9ce;\
+	}\
 	.recap p { \
 		border: 1px solid rgb(9,10,97);\
 		background: rgba(255,255,255,0.3);\
@@ -1852,10 +1919,10 @@ Main.k.css.ingame = function() {
 	}\
 	#profile-notes textarea{\
 		height:40px;\
-	    display: block;\
-	    margin-bottom: 12px;\
-	    margin-top: 5px;\
-	    resize: none;\
+		display: block;\
+		margin-bottom: 12px;\
+		margin-top: 5px;\
+		resize: none;\
 	}\
 	#profile-notes textarea:last-child{\
 		height:146px;\
@@ -3082,7 +3149,7 @@ Main.k.tabs.playing = function() {
 			});
 
 			// Print planet
-			ret += "\n**" + name + "** (" + nbcases + ' ' +Main.k.text.gettext('cases') + ")\n";
+			ret += "\n**" + name + "** (" + nbcases + ' ' + Main.k.text.gettext('cases') + ")\n";
 			if (dist && dir) ret += "//" + dir + " - " + dist + " :mush_fuel:****//\n";
 			ret += cases.join(", ");
 		});
@@ -3107,9 +3174,9 @@ Main.k.tabs.playing = function() {
 	 * @return string;
 	 */
 	Main.k.FormatComm = function(){
-        var comm = "//**" + Main.k.text.gettext('Communications:') + "**//";
+		var comm = "//**" + Main.k.text.gettext('Communications:') + "**//";
 
-        var parse = function(t) {
+		var parse = function(t) {
 			t = t.replace(/<img\s+src=\"\/img\/icons\/ui\/triumph.png\"\s+alt=\"triomphe\"[\/\s]*>/ig, ":mush_triumph:");
 			t = t.replace(/&nbsp;/ig, " ");
 			t = t.replace(/\n/ig, "");
@@ -3117,107 +3184,107 @@ Main.k.tabs.playing = function() {
 			t = t.replace(/<\/?[^>]+>/g, "");
 			return t;
 		};
-        var $trackerModule = $('#trackerModule');
+		var $trackerModule = $('#trackerModule');
 		$trackerModule.find('.sensors').each(function() {
 
-        	var bdd = $(this).find("h2").html().trim();
-            comm += "\n//" + bdd + "//: ";
-            var data = [];
-            $(this).find("p").each(function() {
+			var bdd = $(this).find("h2").html().trim();
+			comm += "\n//" + bdd + "//: ";
+			var data = [];
+			$(this).find("p").each(function() {
 				data.push($(this).find("em").html());
 			});
 
-            if (data.length < 2){
-                data.push(' :alert:');
-            }else{
+			if (data.length < 2){
+				data.push(' :alert:');
+			}else{
 				data.pop();
 				data.push(' :com:');
 			}
-            comm += data.join("");
-        });
+			comm += data.join("");
+		});
 
 		$trackerModule.find('.neron').each(function() {
 
-        	var version = $(this).find("h2").html().trim();
-            comm += "\n//" + version + "//\n";
+			var version = $(this).find("h2").html().trim();
+			comm += "\n//" + version + "//\n";
 
-        });
+		});
 		$trackerModule.find('.xyloph').each(function() {
 
-            var bdd = $(this).find("h2").html().trim();
-            var nbr = 0;
-            var data = [];
-            var datanamereg = /<h1>([^<]+)<\/h1>/;
-            $(this).find("li").not(".undone").each(function() {
-                nbr += 1;
-                data.push(datanamereg.exec($(this).attr("onmouseover"))[1].replace('\\',''));
+			var bdd = $(this).find("h2").html().trim();
+			var nbr = 0;
+			var data = [];
+			var datanamereg = /<h1>([^<]+)<\/h1>/;
+			$(this).find("li").not(".undone").each(function() {
+				nbr += 1;
+				data.push(datanamereg.exec($(this).attr("onmouseover"))[1].replace('\\',''));
 			});
 
-            if (nbr == 12){
-            	comm += "//" + bdd + "//: ";
-                comm += nbr + "/12\n";
-            }
-            else{
-                if (nbr >0){
-           		    comm += "//" + bdd + "//: ";
-            		comm += nbr + "/12"+"\n ▶ **"+ data.join("** \n ▶ **")+"**\n";
-                }
-            }
+			if (nbr == 12){
+				comm += "//" + bdd + "//: ";
+				comm += nbr + "/12\n";
+			}
+			else{
+				if (nbr >0){
+					comm += "//" + bdd + "//: ";
+					comm += nbr + "/12"+"\n ▶ **"+ data.join("** \n ▶ **")+"**\n";
+				}
+			}
 
 
 
-        });
+		});
 
 		$trackerModule.find('.network .bases').each(function() {
 
-            var base = "//" + Main.k.text.gettext('Décodage: ') + "//";
-         	var base_decode;
-            $(this).find("li").each(function(){
+			var base = "//" + Main.k.text.gettext('Décodage: ') + "//";
+			var base_decode;
+			$(this).find("li").each(function(){
 
-                base_decode = $(this).attr("data-id");
-                $(this).find(".percent").not(".off").each(function(){
-                    base += base_decode+ "► " + $(this).html().trim();
-                });
-            });
+				base_decode = $(this).attr("data-id");
+				$(this).find(".percent").not(".off").each(function(){
+					base += base_decode+ "► " + $(this).html().trim();
+				});
+			});
 
-            if (base != "//" + Main.k.text.gettext('Décodage: ') + "//"){
-            	comm += base +"\n";
-            }
+			if (base != "//" + Main.k.text.gettext('Décodage: ') + "//"){
+				comm += base +"\n";
+			}
 
-            var base_fini = "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//";
-            var _base ="";
-            var base_signal_perdu = "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//";
-            var base_nom = "";
-            var nbr_base_perdu = 0;
+			var base_fini = "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//";
+			var _base ="";
+			var base_signal_perdu = "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//";
+			var base_nom = "";
+			var nbr_base_perdu = 0;
 
-            $(this).find("li").each(function(){
+			$(this).find("li").each(function(){
 
-                base_nom = $(this).attr("data-id");
-                $(this).find("h3").each(function(){
-                    if (($(this).html().trim()) != "???" && ($(this).html().trim()) != ""){
+				base_nom = $(this).attr("data-id");
+				$(this).find("h3").each(function(){
+					if (($(this).html().trim()) != "???" && ($(this).html().trim()) != ""){
 
-                        base_fini += $(this).html().trim() +", ";
-                    }
-                });
+						base_fini += $(this).html().trim() +", ";
+					}
+				});
 
-                $(this).find("span").not(".percent").each(function(){
+				$(this).find("span").not(".percent").each(function(){
 
-                    base_signal_perdu += base_nom +", ";
-                });
-            });
+					base_signal_perdu += base_nom +", ";
+				});
+			});
 
-            if (base_fini != "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//"){
-                comm += base_fini;
-                comm = comm.substring(0,comm.length-2)+"\n";
-            }
-            if (base_signal_perdu != "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//"){
-                comm += base_signal_perdu.substring(0,base_signal_perdu.length-2);
-            }
+			if (base_fini != "//" + Main.k.text.gettext('Base(s) décodée(s): ') + "//"){
+				comm += base_fini;
+				comm = comm.substring(0,comm.length-2)+"\n";
+			}
+			if (base_signal_perdu != "//" + Main.k.text.gettext('Base(s) perdue(s): ') + "//"){
+				comm += base_signal_perdu.substring(0,base_signal_perdu.length-2);
+			}
 
 
-        });
-        return comm;
-    	};
+		});
+		return comm;
+		};
 	/**
 	 * @return string;
 	 */
@@ -4707,7 +4774,6 @@ Main.k.tabs.playing = function() {
 		callbacks_storage_sync.fire();
 	};
 
-
 	// == Message Manager  ========================================
 	Main.k.Manager = {};
 	Main.k.Manager.initialized = false;
@@ -5034,10 +5100,10 @@ Main.k.tabs.playing = function() {
 					});
 					if(topic.msg == ''){
 						topic.msg = $(this).find('.mainsaid')
-									.clone()    //clone the element
-									.children() //select all the children
-									.remove()   //remove all the children
-									.end()  //again go back to selected element
+									.clone()		//clone the element
+									.children()		//select all the children
+									.remove()		//remove all the children
+									.end()			//again go back to selected element
 									.text();
 					}
 				}
@@ -5089,10 +5155,10 @@ Main.k.tabs.playing = function() {
 					});
 					if(reply.msg == ''){
 						reply.msg = $(this).find('.reply')
-							.clone()    //clone the element
-							.children() //select all the children
-							.remove()   //remove all the children
-							.end()  //again go back to selected element
+							.clone()		//clone the element
+							.children()		//select all the children
+							.remove()		//remove all the children
+							.end()			//again go back to selected element
 							.text();
 					}
 					reply.tid = topic.id;
@@ -5729,8 +5795,8 @@ Main.k.tabs.playing = function() {
 				$tabreply_content.find(".tid_editorBut__user").remove();
 				// TODO: remove inactive tags in main chat
 
-                $tabreply_content.find(" #tid_wallPost_preview").attr("id", "").addClass("tid_wallPost_preview");
-                $tabreply_content.find(" #tid_wallPost").attr("id", "").addClass("tid_wallPost");
+				$tabreply_content.find(" #tid_wallPost_preview").attr("id", "").addClass("tid_wallPost_preview");
+				$tabreply_content.find(" #tid_wallPost").attr("id", "").addClass("tid_wallPost");
 
 				var preview = $tabreply_content.find(".tid_wallPost_preview").attr("id", "").addClass("reply bubble");
 				if (Main.k.Options.cbubbles) preview.addClass("bubble_" + Main.k.ownHero);
@@ -5896,80 +5962,80 @@ Main.k.tabs.playing = function() {
 	};
 
 	Main.k.Manager.customloaded = false;
-    Main.k.Manager.fillCustom = function() {
-        if (Main.k.Manager.customloaded) {
-            // Update message content
-            if (Main.k.Manager.replywaiting != "") {
-                $("#tabcustom_content").find(".tid_wallPost").val(Main.k.Manager.replywaiting);
-                Main.k.Manager.replywaiting = "";
-            }
-        } else {
+	Main.k.Manager.fillCustom = function() {
+		if (Main.k.Manager.customloaded) {
+			// Update message content
+			if (Main.k.Manager.replywaiting != "") {
+				$("#tabcustom_content").find(".tid_wallPost").val(Main.k.Manager.replywaiting);
+				Main.k.Manager.replywaiting = "";
+			}
+		} else {
 
-            var newpost = $("#tabcustom_content").empty();
-            newpost.html("<div class='loading'><img src='http://twinoid.com/img/loading.gif' alt='Chargement' /> "+Main.k.text.gettext("Chargement…")+"</div>");
-            Main.k.LoadJS('/mod/wall/post', {_id: "tabcustom_content"}, function() {
-                Main.k.Manager.customloaded = true;
+			var newpost = $("#tabcustom_content").empty();
+			newpost.html("<div class='loading'><img src='http://twinoid.com/img/loading.gif' alt='Chargement' /> "+Main.k.text.gettext("Chargement…")+"</div>");
+			Main.k.LoadJS('/mod/wall/post', {_id: "tabcustom_content"}, function() {
+				Main.k.Manager.customloaded = true;
 
-                // Remove inactive tags
-                var $tabcustom_content = $("#tabcustom_content");
-                $tabcustom_content.find(".tid_advanced").remove();
-                $tabcustom_content.find(".tid_button").remove();
-                $tabcustom_content.find(".tid_options").remove();
-                $tabcustom_content.find(".tid_editorBut_question").remove();
-                $tabcustom_content.find(".tid_editorBut__user").remove();
-                // TODO: remove inactive tags in main chat
+				// Remove inactive tags
+				var $tabcustom_content = $("#tabcustom_content");
+				$tabcustom_content.find(".tid_advanced").remove();
+				$tabcustom_content.find(".tid_button").remove();
+				$tabcustom_content.find(".tid_options").remove();
+				$tabcustom_content.find(".tid_editorBut_question").remove();
+				$tabcustom_content.find(".tid_editorBut__user").remove();
+				// TODO: remove inactive tags in main chat
 
-                $tabcustom_content.find("#tid_wallPost_preview").attr("id", "").addClass("tid_wallPost_preview");
-                $tabcustom_content.find("#tid_wallPost").attr("id", "").addClass("tid_wallPost");
+				$tabcustom_content.find("#tid_wallPost_preview").attr("id", "").addClass("tid_wallPost_preview");
+				$tabcustom_content.find("#tid_wallPost").attr("id", "").addClass("tid_wallPost");
 
-                var preview = $tabcustom_content.find(".tid_wallPost_preview").addClass("reply bubble");
-                if (Main.k.Options.cbubbles) preview.addClass("bubble_" + Main.k.ownHero);
-                if (Main.k.Options.cbubblesNB) preview.addClass("custombubbles_nobackground");
+				var preview = $tabcustom_content.find(".tid_wallPost_preview").addClass("reply bubble");
+				if (Main.k.Options.cbubbles) preview.addClass("bubble_" + Main.k.ownHero);
+				if (Main.k.Options.cbubblesNB) preview.addClass("custombubbles_nobackground");
 
-                var bubble = Main.k.ownHero.replace(/(\s)/g, "_").toLowerCase();
-                $("<div>").addClass("char " + bubble).appendTo(preview);
-                $("<span>").addClass("buddy").html(Main.k.ownHero.capitalize() + " : ").appendTo(preview);
-                $("<p>").addClass("tid_preview tid_editorContent tid_wallPost_preview").appendTo(preview);
-                $("<div>").addClass("clear").appendTo(preview);
+				var bubble = Main.k.ownHero.replace(/(\s)/g, "_").toLowerCase();
+				$("<div>").addClass("char " + bubble).appendTo(preview);
+				$("<span>").addClass("buddy").html(Main.k.ownHero.capitalize() + " : ").appendTo(preview);
+				$("<p>").addClass("tid_preview tid_editorContent tid_wallPost_preview").appendTo(preview);
+				$("<div>").addClass("clear").appendTo(preview);
 
-                // Actions
-                var buttons = $("<div>").addClass("tid_buttons").appendTo($tabcustom_content);
-                var answer = Main.k.MakeButton("<img src='http://twinoid.com/img/icons/reply.png' /> "+ Main.k.text.gettext("Répondre au topic"),null,function() {
-                    var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
-                    var val = $tid_wallPost.val();
-                    var k = Main.k.Manager.displayedTopic;
-                    Main.k.postMessage(k, val, Main.k.Manager.update);
-                    $tid_wallPost.val("");
+				// Actions
+				var buttons = $("<div>").addClass("tid_buttons").appendTo($tabcustom_content);
+				var answer = Main.k.MakeButton("<img src='http://twinoid.com/img/icons/reply.png' /> "+ Main.k.text.gettext("Répondre au topic"),null,function() {
+					var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
+					var val = $tid_wallPost.val();
+					var k = Main.k.Manager.displayedTopic;
+					Main.k.postMessage(k, val, Main.k.Manager.update);
+					$tid_wallPost.val("");
 
-                    Main.k.Manager.waitingforupdate = true;
-                    setTimeout(function() {
-                        if (Main.k.Manager.waitingforupdate) Main.k.Manager.update();
-                    }, 5000);
-                })
-                .css({display: "inline-block", margin: "4px 4px 8px"})
-                .appendTo(buttons)
-                .find("a")
-                .attr("_title", "Répondre").attr("_desc", Main.k.text.gettext("Envoyer ce message en tant que réponse au topic affiché ci-contre."))
-                .on("mouseover", Main.k.CustomTip)
-                .on("mouseout", Main.k.hideTip);
+					Main.k.Manager.waitingforupdate = true;
+					setTimeout(function() {
+						if (Main.k.Manager.waitingforupdate) Main.k.Manager.update();
+					}, 5000);
+				})
+				.css({display: "inline-block", margin: "4px 4px 8px"})
+				.appendTo(buttons)
+				.find("a")
+				.attr("_title", "Répondre").attr("_desc", Main.k.text.gettext("Envoyer ce message en tant que réponse au topic affiché ci-contre."))
+				.on("mouseover", Main.k.CustomTip)
+				.on("mouseout", Main.k.hideTip);
 
-                var newtopic = Main.k.MakeButton("<img src='http://twinoid.com/img/icons/reply.png' /> " + Main.k.text.gettext("Nouveau topic"),null,function() {
-                    var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
-                    var val = $tid_wallPost.val();
-                    Main.k.newTopic(val, Main.k.Manager.update);
-                    $tid_wallPost.val("");
-                })
-                .css({display: "inline-block", margin: "4px 4px 8px"})
-                .appendTo(buttons)
-                .find("a")
-                .attr("_title", "Nouveau topic").attr("_desc", Main.k.text.gettext("Poster ce message en tant que nouveau topic."))
-                .on("mouseover", Main.k.CustomTip)
-                .on("mouseout", Main.k.hideTip);
+				var newtopic = Main.k.MakeButton("<img src='http://twinoid.com/img/icons/reply.png' /> " + Main.k.text.gettext("Nouveau topic"),null,function() {
+					var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
+					var val = $tid_wallPost.val();
+					Main.k.newTopic(val, Main.k.Manager.update);
+					$tid_wallPost.val("");
+				})
+				.css({display: "inline-block", margin: "4px 4px 8px"})
+				.appendTo(buttons)
+				.find("a")
+				.attr("_title", "Nouveau topic").attr("_desc", Main.k.text.gettext("Poster ce message en tant que nouveau topic."))
+				.on("mouseover", Main.k.CustomTip)
+				.on("mouseout", Main.k.hideTip);
 
-                var addmsg = Main.k.MakeButton("<img src='http://mush.vg/img/icons/ui/fav.png' /> " + Main.k.text.gettext("Ajouter aux favoris"),null,function() {
-                    var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
-                    var message = $tid_wallPost.val();
-                    Main.k.CreateNeronPrompt();
+				var addmsg = Main.k.MakeButton("<img src='http://mush.vg/img/icons/ui/fav.png' /> " + Main.k.text.gettext("Ajouter aux favoris"),null,function() {
+					var $tid_wallPost = $tabcustom_content.find(".tid_wallPost");
+					var message = $tid_wallPost.val();
+					Main.k.CreateNeronPrompt();
 					$("#validate").click(function(){
 						var title = $("#neron_alert_content").find("input").val();
 						Main.k.ClosePopup();
@@ -5992,16 +6058,16 @@ Main.k.tabs.playing = function() {
 						}
 					});
 
-                })
-                .css({display: "inline-block", margin: "4px 4px 8px"})
-                .appendTo(buttons)
-                .find("a")
-                .attr("_title", "Ajouter aux favoris").attr("_desc", Main.k.text.gettext("Ajouter un message à votre liste des messages pré-enregistrés."))
-                .on("mouseover", Main.k.CustomTip)
-                .on("mouseout", Main.k.hideTip);
+				})
+				.css({display: "inline-block", margin: "4px 4px 8px"})
+				.appendTo(buttons)
+				.find("a")
+				.attr("_title", "Ajouter aux favoris").attr("_desc", Main.k.text.gettext("Ajouter un message à votre liste des messages pré-enregistrés."))
+				.on("mouseover", Main.k.CustomTip)
+				.on("mouseout", Main.k.hideTip);
 
-                var delmsg = Main.k.MakeButton("<img src='http://mush.vg/img/icons/ui/bin.png' /> " + Main.k.text.gettext("Supprimer un favori"),null,function() {
-                    try{
+				var delmsg = Main.k.MakeButton("<img src='http://mush.vg/img/icons/ui/bin.png' /> " + Main.k.text.gettext("Supprimer un favori"),null,function() {
+					try{
 						var title = $tabcustom_content.find(".array_messages_prerecorded .selected").text();
 						Main.k.Manager.delMsgPrerecorded( title );
 					}
@@ -6014,133 +6080,133 @@ Main.k.tabs.playing = function() {
 						}
 					}
 				})
-                .css({display: "inline-block", margin: "4px 4px 8px"})
-                .appendTo(buttons)
-                .find("a")
-                .attr("_title", "Supprimer un favori").attr("_desc", Main.k.text.gettext("Supprimer une message de votre liste des messges pré-enregistrés."))
-                .on("mouseover", Main.k.CustomTip)
-                .on("mouseout", Main.k.hideTip);
+				.css({display: "inline-block", margin: "4px 4px 8px"})
+				.appendTo(buttons)
+				.find("a")
+				.attr("_title", "Supprimer un favori").attr("_desc", Main.k.text.gettext("Supprimer une message de votre liste des messges pré-enregistrés."))
+				.on("mouseover", Main.k.CustomTip)
+				.on("mouseout", Main.k.hideTip);
 
-                if(typeof(js.Lib.window["editor_tid_wallPost"]) == 'undefined'){
-                    js.Lib.window["editor_tid_wallPost"] = {};
-                }
-                // Modify preview
-                js.Lib.window["editor_tid_wallPost"].preview = preview;
+				if(typeof(js.Lib.window["editor_tid_wallPost"]) == 'undefined'){
+					js.Lib.window["editor_tid_wallPost"] = {};
+				}
+				// Modify preview
+				js.Lib.window["editor_tid_wallPost"].preview = preview;
 
-                // Remove inactive icons
-                js.Lib.window["editor_tid_wallPost"].loadSmileys = function(q) {
-                    var k;
-                    var _g = this;
-                    this.initIcons();
-                    if(this.smileysPanel.find(".tid_active").removeClass("tid_active")["is"](q)) return this.hideSmileys(true);
-                    this.hideSmileys(false);
-                    var cid = q.attr("tid_cat");
-                    var cat = null;
-                    if(cid != "_funtag") {
-                        var $it0 = this.config.icons.iterator();
+				// Remove inactive icons
+				js.Lib.window["editor_tid_wallPost"].loadSmileys = function(q) {
+					var k;
+					var _g = this;
+					this.initIcons();
+					if(this.smileysPanel.find(".tid_active").removeClass("tid_active")["is"](q)) return this.hideSmileys(true);
+					this.hideSmileys(false);
+					var cid = q.attr("tid_cat");
+					var cat = null;
+					if(cid != "_funtag") {
+						var $it0 = this.config.icons.iterator();
 
-                        while( $it0.hasNext() ) {
-                            /** @type {{category:string}} **/
-                            var c = $it0.next();
-                            if(c.category == cid) {
-                                cat = c;
-                                break;
-                            }
-                        }
-                        if(cat == null) return false;
-                    }
-                    var s = new StringBuf();
-                    s.b += "<div class=\"tid_smileyPopUp\">";
-                    if(cid == "_funtag") {
-                        s.b += Std.string("<div class=\"tid_title\">" + this.config.funTitle + "</div>");
-                        var keys = [];
-                        var $it1 = this.config.fun.keys();
-                        while( $it1.hasNext() ) {
-                            k = $it1.next();
-                            keys.push(k);
-                        }
-                        keys.sort(function(a,b) {
-                            return Reflect.compare(a,b);
-                        });
-                        var _g1 = 0;
-                        while(_g1 < keys.length) {
-                            k = keys[_g1];
-                            ++_g1;
-                            s.b += Std.string("<a class=\"tid_fun\" href=\"#\" tid_s=\"" + StringTools.htmlEscape("{" + k + "}") + "\"><img src=\"http://" + _tid.host + "/img/icons/" + this.config.fun.get(k).i + ".png\" alt=\"" + k + "\" title=\"" + StringTools.htmlEscape(this.config.fun.get(k).n) + "\"/>" + StringTools.htmlEscape(this.config.fun.get(k).n) + "</a>");
-                        }
-                    } else {
-                        s.b += Std.string("<div class=\"tid_title\">" + cat.category + "</div>");
-                        s.b += "<div class=\"tid_wrapper\">";
-                        var $it2 = cat.icons.iterator();
-                        var a = true;
-                        while( $it2.hasNext() ) {
-                            var i = $it2.next();
+						while( $it0.hasNext() ) {
+							/** @type {{category:string}} **/
+							var c = $it0.next();
+							if(c.category == cid) {
+								cat = c;
+								break;
+							}
+						}
+						if(cat == null) return false;
+					}
+					var s = new StringBuf();
+					s.b += "<div class=\"tid_smileyPopUp\">";
+					if(cid == "_funtag") {
+						s.b += Std.string("<div class=\"tid_title\">" + this.config.funTitle + "</div>");
+						var keys = [];
+						var $it1 = this.config.fun.keys();
+						while( $it1.hasNext() ) {
+							k = $it1.next();
+							keys.push(k);
+						}
+						keys.sort(function(a,b) {
+							return Reflect.compare(a,b);
+						});
+						var _g1 = 0;
+						while(_g1 < keys.length) {
+							k = keys[_g1];
+							++_g1;
+							s.b += Std.string("<a class=\"tid_fun\" href=\"#\" tid_s=\"" + StringTools.htmlEscape("{" + k + "}") + "\"><img src=\"http://" + _tid.host + "/img/icons/" + this.config.fun.get(k).i + ".png\" alt=\"" + k + "\" title=\"" + StringTools.htmlEscape(this.config.fun.get(k).n) + "\"/>" + StringTools.htmlEscape(this.config.fun.get(k).n) + "</a>");
+						}
+					} else {
+						s.b += Std.string("<div class=\"tid_title\">" + cat.category + "</div>");
+						s.b += "<div class=\"tid_wrapper\">";
+						var $it2 = cat.icons.iterator();
+						var a = true;
+						while( $it2.hasNext() ) {
+							var i = $it2.next();
 
-                            // Ignore incorrect icons
-                            if (cat.category == "Mush") {
-                                // Delete inactive icons
-                                if (i.image == "/ui/o2.png") continue;
-                                if (i.tag == ":mush_pa_gen:") continue;
-                                if (i.tag == ":mush_pa_mov:") continue;
-                                if (i.tag == ":mush_planet:") continue;
+							// Ignore incorrect icons
+							if (cat.category == "Mush") {
+								// Delete inactive icons
+								if (i.image == "/ui/o2.png") continue;
+								if (i.tag == ":mush_pa_gen:") continue;
+								if (i.tag == ":mush_pa_mov:") continue;
+								if (i.tag == ":mush_planet:") continue;
 
-                                // Modify incorrect icons
-                                if (i.tag == ":mush_pa:") {
-                                    i.tag = ":pa:";
-                                    i.image = "/img/icons/ui/pa_slot1.png";
-                                } else if (i.tag == ":mush_pm:") {
-                                    i.tag = ":pm:";
-                                    i.image = "/img/icons/ui/pa_slot2.png";
-                                } else if (i.tag == ":mush_exp:") {
-                                    i.tag = ":xp:";
-                                    i.image = "/img/icons/ui/xp.png";
-                                }
-                            }
+								// Modify incorrect icons
+								if (i.tag == ":mush_pa:") {
+									i.tag = ":pa:";
+									i.image = "/img/icons/ui/pa_slot1.png";
+								} else if (i.tag == ":mush_pm:") {
+									i.tag = ":pm:";
+									i.image = "/img/icons/ui/pa_slot2.png";
+								} else if (i.tag == ":mush_exp:") {
+									i.tag = ":xp:";
+									i.image = "/img/icons/ui/xp.png";
+								}
+							}
 
-                            var str = i.tag;
-                            var desc = i.tag;
-                            if(i.alt != null) {
-                                str = i.alt;
-                                desc = i.alt + ", " + i.tag;
-                            }
-                            var mh = "";
-                            if(i.max != null) mh += "<span class=\"tid_max tid_max_" + i.tag.split(":").join("") + "\">" + i.max + "</span>";
-                            s.b += Std.string("<a class=\"tid_smiley\" href=\"#\">" + mh + "<img src=\"" + cat.url + i.image + "\" tid_s=\"" + StringTools.htmlEscape(str) + "\" title=\"" + StringTools.htmlEscape(desc) + "\"/></a>");
-                        }
-                        s.b += "</div>";
-                    }
-                    s.b += "<div class=\"tid_clear\"></div>";
-                    s.b += "</div>";
-                    q.addClass("tid_active");
-                    var pop = $(s.b);
-                    q.parent().append(pop);
-                    pop.hide().slideDown(200);
-                    if(cid == "_funtag") pop.find("a.tid_fun").click(function() {
-                        _g.insert($(this).attr("tid_s"));
-                        return false;
-                    }); else pop.find("a.tid_smiley").click(function() {
-                        var m = $(this).find(".tid_max");
-                        if(m.length > 0 && Std.parseInt(m.html()) == 0) return false;
-                        _g.insert($(this).find("img").attr("tid_s"));
-                        return false;
-                    });
-                    return false;
-                };
+							var str = i.tag;
+							var desc = i.tag;
+							if(i.alt != null) {
+								str = i.alt;
+								desc = i.alt + ", " + i.tag;
+							}
+							var mh = "";
+							if(i.max != null) mh += "<span class=\"tid_max tid_max_" + i.tag.split(":").join("") + "\">" + i.max + "</span>";
+							s.b += Std.string("<a class=\"tid_smiley\" href=\"#\">" + mh + "<img src=\"" + cat.url + i.image + "\" tid_s=\"" + StringTools.htmlEscape(str) + "\" title=\"" + StringTools.htmlEscape(desc) + "\"/></a>");
+						}
+						s.b += "</div>";
+					}
+					s.b += "<div class=\"tid_clear\"></div>";
+					s.b += "</div>";
+					q.addClass("tid_active");
+					var pop = $(s.b);
+					q.parent().append(pop);
+					pop.hide().slideDown(200);
+					if(cid == "_funtag") pop.find("a.tid_fun").click(function() {
+						_g.insert($(this).attr("tid_s"));
+						return false;
+					}); else pop.find("a.tid_smiley").click(function() {
+						var m = $(this).find(".tid_max");
+						if(m.length > 0 && Std.parseInt(m.html()) == 0) return false;
+						_g.insert($(this).find("img").attr("tid_s"));
+						return false;
+					});
+					return false;
+				};
 
-                // Auto-load Mush icons
-                //$("#editor_tid_wallPost").loadSmileys($("#editor_tid_wallPost a.tid_smcat[tid_cat='Mush']"));
+				// Auto-load Mush icons
+				//$("#editor_tid_wallPost").loadSmileys($("#editor_tid_wallPost a.tid_smcat[tid_cat='Mush']"));
 
 
-                var array_msg = $("<p>").addClass("array_messages_prerecorded").prependTo( $tabcustom_content );
+				var array_msg = $("<p>").addClass("array_messages_prerecorded").prependTo( $tabcustom_content );
 
-                var messages_prerecorded = [];
-                if(Main.k.Manager.msgs_prerecorded != undefined ){
-                    messages_prerecorded = Main.k.Manager.msgs_prerecorded;
-                }
+				var messages_prerecorded = [];
+				if(Main.k.Manager.msgs_prerecorded != undefined ){
+					messages_prerecorded = Main.k.Manager.msgs_prerecorded;
+				}
 
-                for(var idMsg = 0;idMsg<messages_prerecorded.length;idMsg++){
-                    $("<span>"+ messages_prerecorded[idMsg][0] +"</span>").addClass("message_prerecorded")
-                    .appendTo(array_msg)
+				for(var idMsg = 0;idMsg<messages_prerecorded.length;idMsg++){
+					$("<span>"+ messages_prerecorded[idMsg][0] +"</span>").addClass("message_prerecorded")
+					.appendTo(array_msg)
 					.click(function(){
 							if($(this).is(".selected")){
 								$tabcustom_content.find(".array_messages_prerecorded .selected").removeClass("selected");
@@ -6160,16 +6226,16 @@ Main.k.tabs.playing = function() {
 								$tabcustom_content.find(".tid_wallPost").val(msgPrerecorded);
 							}
 					});
-                }
-            });
+				}
+			});
 
-                // Update message content
-                if (Main.k.Manager.replywaiting != "") {
+				// Update message content
+				if (Main.k.Manager.replywaiting != "") {
 					newpost.find(".tid_wallPost").val(Main.k.Manager.replywaiting);
-                    Main.k.Manager.replywaiting = "";
-                }
-        }
-    };
+					Main.k.Manager.replywaiting = "";
+				}
+		}
+	};
 
 	Main.k.Manager.initHeroes = function() {
 		Main.k.Manager.heroes["neron"] = { name: "neron", mess: 0, av: 0, a: 0 };
@@ -7388,14 +7454,14 @@ Main.k.tabs.playing = function() {
 			});
 			//Comm
 		}else if ($("#trackerModule").length > 0){
-            var t = $("<h3>").html(Main.k.text.gettext("Com.")).appendTo(project_list);
-            $("<span>").addClass("displayless").attr("_target", ".commPreview")
+			var t = $("<h3>").html(Main.k.text.gettext("Com.")).appendTo(project_list);
+			$("<span>").addClass("displayless").attr("_target", ".commPreview")
 				.on("click", Main.k.ToggleDisplay).appendTo(t);
-            var nav = $("#trackerModule");
-            var comm = $("<div>").addClass("commPreview").css({'text-align':'center','cursor':'pointer'}).appendTo(project_list);
-            var $img_com = $("<img>")
+			var nav = $("#trackerModule");
+			var comm = $("<div>").addClass("commPreview").css({'text-align':'center','cursor':'pointer'}).appendTo(project_list);
+			var $img_com = $("<img>")
 					.attr("src", "/img/design/sensor01.png")
-                    .on("mousedown", function(e) {
+					.on("mousedown", function(e) {
 					$('textarea:focus').each(function(e) {
 						var txt = Main.k.FormatComm();
 						$(this).insertAtCaret(txt);
@@ -7405,8 +7471,8 @@ Main.k.tabs.playing = function() {
 			setInterval(function(){
 				$img_com.attr('src',$('#trackerModule').find('.sensors img').attr('src'));
 			},100);
-            //TODO multi
-            Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> "+Main.k.text.gettext("Partager"), null, null, null,
+			//TODO multi
+			Main.k.MakeButton("<img src='/img/icons/ui/talk.gif' /> "+Main.k.text.gettext("Partager"), null, null, null,
 					"TODO: aperçu"
 				).appendTo(project_list)
 				.find("a").on("mousedown", function(e) {
@@ -7416,7 +7482,7 @@ Main.k.tabs.playing = function() {
 					});
 					return false;
 				});
-        }
+		}
 
 		// Plants
 		$usLeftbar.find("#plantmanager").remove();
@@ -7641,8 +7707,6 @@ Main.k.tabs.playing = function() {
 				Main.k.HEROES.splice(index,1);
 			});
 		}
-
-
 
 
 	};
