@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.35.19b6
+// @version     0.35.19b7
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -865,7 +865,7 @@ Main.k.Game.save = function() {
 };
 Main.k.Game.clear = function(){
 	Main.k.Game.data.day = 0;
-	$this.save();
+	this.save();
 };
 Main.k.Game.updateDayAndCycle = function(day,cycle) {
 	if(day != this.data.day || cycle != this.data.cycle){
