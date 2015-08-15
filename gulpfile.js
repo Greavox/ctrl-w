@@ -1,6 +1,5 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
-var addsrc = require('gulp-add-src');
 
 gulp.task('default', function() {
 
@@ -41,7 +40,7 @@ gulp.task('default', function() {
 		'./src/start.js'];
 
 	gulp.src(fileOrder)
-		.pipe(concat('CTRLW.user.js'), {newLine: ''})
+		.pipe(concat('CTRLW.user.js'), {newLine: '\n'})
 		.pipe(gulp.dest('./'));
 
 });

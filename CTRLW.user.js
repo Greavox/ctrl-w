@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.36b1
+// @version     0.36b2
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -3327,10 +3327,13 @@ Main.k.tabs.playing = function() {
 		};
 
 		$("#cdModuleContent").find("ul.dev li.cdProjCard").each(function(i) {
+			var pct = $(this).find("span").html().trim()
+			if(parseInt(pct) == 0){
+				return true;
+			}
 			var h3 = $(this).find("h3").clone();
 			h3.find("em").remove();
 			var name = parse(h3.html().trim());
-			var pct = $(this).find("span").html().trim();
 			var desc = parse($(this).find("div.desc").html().trim());
 			var bonus1 = /<strong>([^<]+)<\/strong>/.exec($(this).find("div.suggestprogress ul li img").first().attr("onmouseover"))[1].trim().replace("Médeçin", "Médecin");
 			var bonus2 = /<strong>([^<]+)<\/strong>/.exec($(this).find("div.suggestprogress ul li img").last().attr("onmouseover"))[1].trim().replace("Médeçin", "Médecin");
@@ -4861,8 +4864,8 @@ Main.k.tabs.playing = function() {
 		if(save == null){
 			save = true;
 		}
-		console.group('Main.k.Profiles.save');
-		console.log('profile',profile);
+//		console.group('Main.k.Profiles.save');
+//		console.log('profile',profile);
 		var profiles = this.data;
 		if(profiles == null){
 			profiles = {};
@@ -6789,7 +6792,7 @@ Main.k.tabs.playing = function() {
 		t = $("<h3>").html(Main.k.text.gettext("Présent(s)").capitalize()).appendTo(leftbar);
 		$("<span>").addClass("displaymore").attr("_target", "#heroes_list").appendTo(t).on("click", Main.k.ToggleDisplay);
 		$("<div>").attr("id", "heroes_list").css("display", "none").appendTo(leftbar);
-		t = $("<h3>").html(Main.k.text.gettext("équipage").capitalize()).appendTo(leftbar);
+		t = $("<h3>").addClass("ctrlw-sidebar-title-crew").html(Main.k.text.gettext("équipage").capitalize()).appendTo(leftbar);
 		$("<span>").addClass("displayless").attr("_target", "#crew_list").appendTo(t).on("click", Main.k.ToggleDisplay);
 		$("<div>").attr("id", "crew_list").css("display", "block").appendTo(leftbar);
 		// ----------------------------------- //
@@ -7022,6 +7025,19 @@ Main.k.tabs.playing = function() {
 
 		// Heroes
 		// ----------------------------------- //
+
+		if(Main.k.GameInfos.data.heroes_list.length == 0 && $('#ctrlw-warning-crew-list').length == 0){
+			var $alert_crew_list = $('<img id="ctrlw-warning-crew-list" style="margin-left:10px;position: relative;top:5px" src="/img/icons/ui/broken.png" ' +
+				'_title="'+Main.k.text.gettext("Attention")+'" ' +
+				'_desc="'+Main.k.text.gettext("Pour avoir une liste d'équipage correcte, vous devez mettre à jour cette liste via le module Cryo. <br/>" +
+					"Pour ce faire, veuillez vous rendre au labo, listez l'équipage via le module Cryo et cliquez sur le bouton au bas de la liste des personnages.<br/>" +
+					"Attention, le bouton n'apparait que lorsque l'équipage est au complet.")+'"/>')
+				.on("mouseover", Main.k.CustomTip)
+				.on("mouseout", Main.k.hideTip);
+			$alert_crew_list.appendTo($('.ctrlw-sidebar-title-crew'));
+		}else{
+			$('#ctrlw-warning-crew-list').remove();
+		}
 		var heroes_list = $("#heroes_list").empty();
 
 		// Display players' skills & statuses
@@ -7322,6 +7338,8 @@ Main.k.tabs.playing = function() {
 
 						}
 					});
+					/** To detect crew list update **/
+					Main.k.HEROES = Main.k.HEROES_ALL;
 					Main.k.GameInfos.data.heroes_list = heroes_list;
 					Main.k.GameInfos.save();
 					Main.k.Profiles.save();
