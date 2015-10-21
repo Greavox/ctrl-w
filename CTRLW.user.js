@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.36.1
+// @version     0.36.2b1
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -287,6 +287,7 @@ Main.k.initData = function() {
 	Main.k.cssToHeroes["-1681px"] = "stephen";
 	Main.k.cssToHeroes["-1728px"] = "paola";
 	Main.k.cssToHeroes["-1056px"] = "roland";
+	Main.k.cssToHeroes["-1875px"] = "kuan_ti";
 
 	Main.k.compActiveMush = [];
 
