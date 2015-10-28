@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.36.2b2
+// @version     0.36.2b3
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -3681,9 +3681,9 @@ Main.k.tabs.playing = function() {
 		if (!a) return b;
 		if (!b) return a;
 
-		// <1min
-		if (a == "&lt;1m") return b;
-		if (b == "&lt;1m") return a;
+		// à l'instant
+		if (a == Main.k.text.gettext("à l'instant")) return b;
+		if (b == Main.k.text.gettext("à l'instant")) return a;
 
 		// Minutes
 		var reg_min = /([0-9]+)min/;
@@ -3750,9 +3750,9 @@ Main.k.tabs.playing = function() {
 		if (!a) return b;
 		if (!b) return a;
 
-		// <1min
-		if (a == "&lt;1m") return a;
-		if (b == "&lt;1m") return b;
+		// à l'instant
+		if (a == Main.k.text.gettext("à l'instant")) return a;
+		if (b == Main.k.text.gettext("à l'instant")) return b;
 
 		// Minutes
 		var reg_min = /([0-9]+)min/;
@@ -3812,11 +3812,13 @@ Main.k.tabs.playing = function() {
 		return a;
 	};
 	Main.k.extendAgo = function(ago) {//TODO: MULTILANG
-		var one = (parseInt(/([0-9]+)/.exec(ago)[1]) == 1);
-
-		ago = ago.replace("min", " minute" + (one ? "" : "s"));
-		ago = ago.replace("h", " heure" + (one ? "" : "s"));
-		ago = ago.replace("j", " jour" + (one ? "" : "s"));
+		var reg_result = /([0-9]+)/.exec(ago);
+		if(reg_result != null){
+			var one = (parseInt(reg_result[1]) == 1);
+			ago = ago.replace("min", " minute" + (one ? "" : "s"));
+			ago = ago.replace("h", " heure" + (one ? "" : "s"));
+			ago = ago.replace("j", " jour" + (one ? "" : "s"));
+		}
 		ago = ago.replace("&lt;1m", "moins d'une minute");
 		ago = ago.replace("~", "environ ");
 		return ago;
