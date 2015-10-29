@@ -18,7 +18,7 @@
 // @resource    translation:fr https://raw.github.com/badconker/ctrl-w/beta/translations/fr/LC_MESSAGES/ctrl-w.po
 // @resource    translation:en https://raw.github.com/badconker/ctrl-w/beta/translations/en/LC_MESSAGES/ctrl-w.po
 // @resource    translation:es https://raw.github.com/badconker/ctrl-w/beta/translations/es/LC_MESSAGES/ctrl-w.po
-// @version     0.36.2b3
+// @version     0.36.2
 // ==/UserScript==
 
 var Main = unsafeWindow.Main;
@@ -63,8 +63,7 @@ Main.k = createObjectIn(unsafeWindow.Main, {defineAs: "k"});
 Main.k.window = unsafeWindow;
 Main.k.version = GM_info.script.version;
 Main.k.website = "http://ks26782.kimsufi.com/ctrlw";
-Main.k.servurl = "http://ctrl-w.badconker.com";
-Main.k.servurl_badconker = 'http://ctrlw.badconker.com';
+Main.k.servurl = "http://ctrl-w.badconker.fr";
 Main.k.window = window;
 Main.k.domain = document.domain;
 Main.k.mushurl = 'http://' + document.domain;
@@ -275,19 +274,20 @@ Main.k.initData = function() {
 	});
 
 	Main.k.cssToHeroes = [];
+	Main.k.cssToHeroes["-1056px"] = "roland";
 	Main.k.cssToHeroes["-1185px"] = "janice";
+	Main.k.cssToHeroes["-1233px"] = "ian";
 	Main.k.cssToHeroes["-1282px"] = "chao";
 	Main.k.cssToHeroes["-1335px"] = "eleesha";
-	Main.k.cssToHeroes["-1233px"] = "ian";
-	Main.k.cssToHeroes["-1444px"] = "terrence";
-	Main.k.cssToHeroes["-1554px"] = "hua";
-	Main.k.cssToHeroes["-1499px"] = "jin_su";
-	Main.k.cssToHeroes["-1604px"] = "jin_su";
 	Main.k.cssToHeroes["-1391px"] = "raluca";
+	Main.k.cssToHeroes["-1444px"] = "terrence";
+	Main.k.cssToHeroes["-1499px"] = "jin_su";
+	Main.k.cssToHeroes["-1554px"] = "hua";
+	Main.k.cssToHeroes["-1604px"] = "jin_su";
 	Main.k.cssToHeroes["-1681px"] = "stephen";
 	Main.k.cssToHeroes["-1728px"] = "paola";
-	Main.k.cssToHeroes["-1056px"] = "roland";
 	Main.k.cssToHeroes["-1875px"] = "kuan_ti";
+	Main.k.cssToHeroes["-2063px"] = "frieda";
 
 	Main.k.compActiveMush = [];
 
@@ -2528,7 +2528,7 @@ Main.k.tabs.playing = function() {
 					.appendTo($skilldom);
 
 				if (Main.k.compInactiveMush[skill.img]) {
-					$("<img>").attr("src", Main.k.servurl_badconker + "/img/non-mush.png").addClass("actmush")
+					$("<img>").attr("src", Main.k.servurl + "/img/non-mush.png").addClass("actmush")
 						.attr("width", "10").attr("height", "10")
 						.appendTo($skilldom);
 				}
@@ -4692,7 +4692,7 @@ Main.k.tabs.playing = function() {
 						.appendTo(skilldom);
 
 					if (Main.k.compInactiveMush[skill.img]) {
-						$("<img>").attr("src", Main.k.servurl_badconker + "/img/non-mush.png").addClass("actmush")
+						$("<img>").attr("src", Main.k.servurl + "/img/non-mush.png").addClass("actmush")
 							.attr("width", "10").attr("height", "10")
 							.attr("_title", Main.k.text.gettext("Compétence inactive mush"))
 							.attr("_desc", Main.k.text.gettext("Cette compétence est inactive quand on est mush (source : Twinpedia)."))
@@ -7146,7 +7146,7 @@ Main.k.tabs.playing = function() {
 					.appendTo(skilldom);
 
 					if (Main.k.compInactiveMush[skill.img]) {
-						$("<img>").attr("src", Main.k.servurl_badconker + "/img/non-mush.png").addClass("actmush")
+						$("<img>").attr("src", Main.k.servurl + "/img/non-mush.png").addClass("actmush")
 						.attr("width", "10").attr("height", "10")
 						.attr("_title", Main.k.text.gettext("Compétence inactive mush"))
 						.attr("_desc", Main.k.text.gettext("Cette compétence est inactive quand on est mush (source : Twinpedia)."))
