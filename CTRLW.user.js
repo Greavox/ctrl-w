@@ -576,9 +576,22 @@ Main.k.displayMainMenu = function() {
 		$("<li><a class='kssmenuel ext' href='"+Main.k.mushurl+"/tid/forum#!view/"+Main.k.text.gettext("ForumAdviceId")+"|thread/" + Main.k.h[Main.k.ownHero].tutorial + "'><img src='/img/icons/ui/" + charname + ".png' />" + Main.k.text.strargs(Main.k.text.gettext("Tuto %1"), [Main.k.ownHero.capitalize()]) + "</a></li>").appendTo(help_ss);
 	}
 	/* Translators: Wiki url */
-	$("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("http://www.twinpedia.com/mush")+
+	//$("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("http://www.twinpedia.com/mush")+
 	/* Translators: Wiki favicon url */
-	"'><img data-async_src='"+Main.k.text.gettext("http://www.twinpedia.com/_media/favicon.ico")+"' />"+Main.k.text.gettext("Twinpedia")+"</a></li>").appendTo(help_ss);
+	//"'><img data-async_src='"+Main.k.text.gettext("http://www.twinpedia.com/_media/favicon.ico")+"' />"+Main.k.text.gettext("Twinpedia")+"</a></li>").appendTo(help_ss);
+	/* Ajout Archive Twinpedia */
+	$("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("http://twin.tithom.fr/mush/")+
+	"'><img data-async_src='"+Main.k.text.gettext("http://twin.tithom.fr/_media/mush/notes.gif")+"' />"+Main.k.text.gettext("Twinpedia")+"</a></li>").appendTo(help_ss);
+	/* Ajout Mushpedia */
+	$("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("http://www.mushpedia.com/wiki/Main_Page")+
+	"'><img data-async_src='"+Main.k.text.gettext("http://www.mushpedia.com/images/2/2e/Book_icon.png")+"' />"+Main.k.text.gettext("Mushpedia")+"</a></li>").appendTo(help_ss);
+    /* Ajout Blablatouar.com http://mush.blablatouar.com/ */
+    $("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("http://mush.blablatouar.com")+
+	"'><img data-async_src='"+Main.k.text.gettext("http://mush.blablatouar.com/img/favicon.gif")+"' />"+Main.k.text.gettext("Outils Blablatouar")+"</a></li>").appendTo(help_ss);
+    /* Ajout Wiki Korhian https://sites.google.com/site/mywikimush/ */
+    $("<li><a class='kssmenuel ext' target='_blank' href='"+Main.k.text.gettext("https://sites.google.com/site/mywikimush/")+
+	"'><img data-async_src='"+Main.k.text.gettext("http://www.mushpedia.com/images/9/96/Wall.png")+"' />"+Main.k.text.gettext("Wiki Korhian")+"</a></li>").appendTo(help_ss);
+	/* Fin des ajouts */
 	$("<li><a class='kssmenuel ext' href='http://pictoid.badconker.fr/"+encodeURIComponent(Main.k.lang)+"/game/"+encodeURIComponent(Main.k.text.gettext("mush_game_id"))+"' target='_blank'><img data-async_src='http://pictoid.badconker.fr/favicon.ico' />Pictoid</a></li>").appendTo(help_ss);
 
 	if (Main.k.fds) {
@@ -1033,7 +1046,7 @@ Main.k.css.customMenu = function() {
 		top: 33px;\
 		left: 0;\
 		text-align: right;\
-		z-index: 9;\
+		z-index: 30;\
 		padding: 0;\
 	}\
 	.kmenuel ul li:hover ul {\
@@ -1041,7 +1054,7 @@ Main.k.css.customMenu = function() {
 		position: absolute;\
 		width: 100%;\
 		text-align: right;\
-		z-index: 9;\
+		z-index: 30;\
 		padding: 0;\
 	}\
 	.kmenuel ul li {\
@@ -3385,7 +3398,7 @@ Main.k.tabs.playing = function() {
 	 * @return string;
 	 */
 	Main.k.FormatPlanets = function(index) {//TODO: MULTILANG
-		var ret = "**//"+Main.k.text.gettext("Planètes")+" : //**";
+		var ret = '', compteurPlanet = 0;
 
 		var parse = function(t) {
 			t = t.replace(/<img\s+src=\"\/img\/icons\/ui\/triumph.png\"\s+alt=\"triomphe\"[\/\s]*>/ig, ":mush_triumph:");
@@ -3415,6 +3428,7 @@ Main.k.tabs.playing = function() {
 
 			// Cases
 			var nbcases = $(this).find("td img.explTag").length;
+            var nbCasesInconnues = $(this).find("td img.explTag.off").length;
 			var cases = [];
 			var casenamereg = /<h1>([^<]+)<\/h1>/;
 			$(this).find("td img.explTag.on").each(function() {
@@ -3422,9 +3436,32 @@ Main.k.tabs.playing = function() {
 			});
 
 			// Print planet
-			ret += "\n**" + name + "** (" + nbcases + ' ' + Main.k.text.gettext('cases') + ")\n";
+            if(compteurPlanet === 0){
+                compteurPlanet++;
+            }else{
+                ret += "\n**";
+                compteurPlanet++;
+            }
+			ret += "**" + name + "** (" + nbcases + ' ' + Main.k.text.gettext('cases') + ")\n";
 			if (dist && dir) ret += "//" + dir + " - " + dist + " :mush_fuel:****//\n";
 			ret += cases.join(", ");
+            if(nbCasesInconnues === 1){
+                if(cases.length === 0){
+                    ret += "Encore ";
+                } else {
+                    ret += " et encore ";
+                }
+                ret += "1 case inconnue.";
+            } else if ( nbCasesInconnues === 0){
+                ret += ".";
+            } else {
+                if(cases.length === 0){
+                    ret += "Encore ";
+                } else {
+                    ret += " et encore ";
+                }
+                ret += nbCasesInconnues+" cases inconnues.";
+            }
 		});
 
 		return ret;
@@ -5109,7 +5146,7 @@ Main.k.tabs.playing = function() {
 		var haschat1 = true;
 		var haschat2 = true;
 		var haschat3 = true;
-		
+
 		var $tabstats;
 
 		if (!Main.k.Manager.initialized) {
@@ -7078,7 +7115,7 @@ Main.k.tabs.playing = function() {
 						Main.k.GameInfos.save();
 						Main.k.HEROES = Main.k.HEROES_ALL.slice();
 						Main.k.MushUpdate();
-						
+
 					});
 				$alert_crew_list.appendTo($('.ctrlw-sidebar-title-crew'));
 			}
@@ -8022,7 +8059,7 @@ Main.k.tabs.playing = function() {
 		Main.k.heroes_same_room = tab_heroes_same_room;
 
 		if(Main.k.HEROES_ALL.length == Main.k.HEROES.length){
-			
+
 //			console.log('check heroes list',Main.k.GameInfos.data.heroes_list);
 			if(Main.k.GameInfos.data.heroes_list.length > 0){
 				Main.k.HEROES = Main.k.GameInfos.data.heroes_list;
